@@ -2,29 +2,98 @@
 <a href="#truestamptree" id="truestamptree" style="color: inherit; text-decoration: none;">
   <h1>@truestamp/tree</h1>
 </a>
-<p>Set of functions for creating Merkle Tree, proofs and verifying proofs using binary data.</p>
-<p>This library doesn&#39;t hash original data, you have to specify hashes (or binary data of fixed size).</p>
+<p>This library provides a TypeScript/JavaScript API for creating Merkle trees, and validating Merkle inclusion proofs.</p>
+<p>Data provided to create the tree is required to already be in binary form (<code>Uint8Array</code>) and all
+internal operations are performed on binary data.</p>
+<p>The library provides several encodings for Merkle inclusion proofs, any one of which is acceptable for validation.</p>
+<p>This library doesn&#39;t hash original data or provide a hash function, you have to provide hashed (or arbitrary binary data of fixed size).</p>
+<p>The library performs extensive compile time (TypeScript), and run time, validation of the incoming data to ensure correctness and safety at the possible expense of raw performance. That being said, it is still extremely fast, able to round-trip process a 1,000 item tree in about 20 milliseconds.</p>
+
+<a href="#security-notes" id="security-notes" style="color: inherit; text-decoration: none;">
+  <h2>Security Notes</h2>
+</a>
 <p>This implementation is vulnerable to a forgery attack (<a href="https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack">as a second pre-image attack</a>), see these<a href="https://crypto.stackexchange.com/questions/2106/what-is-the-purpose-of-using-different-hash-functions-for-the-leaves-and-interna">[1]</a><a href="https://crypto.stackexchange.com/questions/43430/what-is-the-reason-to-separate-domains-in-the-internal-hash-algorithm-of-a-merkl/44971#44971">[2]</a> crypto.stackexchange questions for an explanation.
 To avoid this vulnerability, you should pre-hash your leaves <em>using a different hash function</em> than the function provided such that <code>H(x) != H&#39;(x)</code>, alternatively you can record tree depth alongside root hash and check it during validation.</p>
 <p>This implementation is vulnerable to a forgery attack (<a href="https://bitcointalk.org/?topic=102395">for an unbalanced Merkle Tree</a>), wherein, in an unbalanced Merkle Tree, the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same root hash.
-To avoid this vulnerability, do not accept unbalanced Merkle Trees in your application.</p>
+To avoid this vulnerability, do not accept unbalanced Merkle Trees in your application (a <code>Tree</code> option is provided to allow enforcing this).</p>
 
-<a href="#how-to-install" id="how-to-install" style="color: inherit; text-decoration: none;">
-  <h2>How to install</h2>
+<a href="#install" id="install" style="color: inherit; text-decoration: none;">
+  <h2>Install</h2>
 </a>
 <pre><code class="language-sh"><span class="hl-0">npm install @truestamp/tree</span>
 </code></pre>
 
-<a href="#how-to-use" id="how-to-use" style="color: inherit; text-decoration: none;">
-  <h2>How to use</h2>
+<a href="#sample-usage" id="sample-usage" style="color: inherit; text-decoration: none;">
+  <h2>Sample Usage</h2>
 </a>
-<p>TypeScript:</p>
-<pre><code class="language-javascript"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">Tree</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;@truestamp/tree&#39;</span><span class="hl-0">;</span><br/><br/><span class="hl-4">// Do stuff</span>
-</code></pre>
 <p>Node.js:</p>
-<pre><code class="language-javascript"><span class="hl-5">const</span><span class="hl-0"> { </span><span class="hl-6">Tree</span><span class="hl-0"> } = </span><span class="hl-7">require</span><span class="hl-0">(</span><span class="hl-3">&#39;@truestamp/tree&#39;</span><span class="hl-0">)</span><br/><br/><span class="hl-4">// Do stuff</span>
+<pre><code class="language-javascript"><span class="hl-1">import</span><span class="hl-0"> { </span><span class="hl-2">Tree</span><span class="hl-0"> } </span><span class="hl-1">from</span><span class="hl-0"> </span><span class="hl-3">&#39;@truestamp/tree&#39;</span><span class="hl-0">;</span><br/><br/><span class="hl-4">// Using the Node.js crypto SHA256 hash function for this example.</span><br/><span class="hl-4">// You can provide your own hash function.</span><br/><span class="hl-5">function</span><span class="hl-0"> </span><span class="hl-6">sha256</span><span class="hl-0">(</span><span class="hl-2">data</span><span class="hl-0">) {</span><br/><span class="hl-0">  </span><span class="hl-1">return</span><span class="hl-0"> </span><span class="hl-2">crypto</span><span class="hl-0">.</span><span class="hl-6">createHash</span><span class="hl-0">(</span><span class="hl-3">&#39;sha256&#39;</span><span class="hl-0">).</span><span class="hl-6">update</span><span class="hl-0">(</span><span class="hl-2">data</span><span class="hl-0">).</span><span class="hl-6">digest</span><span class="hl-0">()</span><br/><span class="hl-0">}</span><br/><br/><span class="hl-4">// Generate a sample 16 element hashed data array</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">rawData</span><span class="hl-0"> = </span><span class="hl-8">Array</span><span class="hl-0">.</span><span class="hl-6">from</span><span class="hl-0">(</span><span class="hl-9">16</span><span class="hl-0">).</span><span class="hl-6">map</span><span class="hl-0">(() </span><span class="hl-5">=&gt;</span><span class="hl-0"> </span><span class="hl-8">Math</span><span class="hl-0">.</span><span class="hl-6">random</span><span class="hl-0">())</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">data</span><span class="hl-0"> = </span><span class="hl-2">rawData</span><span class="hl-0">.</span><span class="hl-6">map</span><span class="hl-0">((</span><span class="hl-2">x</span><span class="hl-0">) </span><span class="hl-5">=&gt;</span><span class="hl-0"> { </span><span class="hl-1">return</span><span class="hl-0"> </span><span class="hl-6">sha256</span><span class="hl-0">(</span><span class="hl-2">x</span><span class="hl-0">.</span><span class="hl-6">toString</span><span class="hl-0">()) })</span><br/><br/><span class="hl-4">// Construct the Merkle tree</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">t</span><span class="hl-0"> = </span><span class="hl-5">new</span><span class="hl-0"> </span><span class="hl-6">Tree</span><span class="hl-0">(</span><span class="hl-2">data</span><span class="hl-0">, </span><span class="hl-2">sha256</span><span class="hl-0">)</span><br/><br/><span class="hl-4">// Get the root of the tree for later use</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">r</span><span class="hl-0"> = </span><span class="hl-2">t</span><span class="hl-0">.</span><span class="hl-6">root</span><span class="hl-0">()</span><br/><br/><span class="hl-4">// Pick (and store a verifiable copy) of one of the data elements that will be validated.</span><br/><span class="hl-4">// (you can do the same for every data element to store and later verify )</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">d</span><span class="hl-0"> = </span><span class="hl-2">data</span><span class="hl-0">[</span><span class="hl-8">Math</span><span class="hl-0">.</span><span class="hl-6">floor</span><span class="hl-0">(</span><span class="hl-8">Math</span><span class="hl-0">.</span><span class="hl-6">random</span><span class="hl-0">() * </span><span class="hl-2">data</span><span class="hl-0">.</span><span class="hl-2">length</span><span class="hl-0">)]</span><br/><br/><span class="hl-4">// Extract the Merkle inclusion proof for that data element to store</span><br/><span class="hl-4">// alongside your pristine copy of the data.</span><br/><span class="hl-4">// (you can do the same for every data element to store and later verify )</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-7">p</span><span class="hl-0"> = </span><span class="hl-2">t</span><span class="hl-0">.</span><span class="hl-6">proofObject</span><span class="hl-0">(</span><span class="hl-2">d</span><span class="hl-0">)</span><br/><br/><span class="hl-4">// At any time in the future, validate your proof by providing</span><br/><span class="hl-4">// the stored root, the proof, and data. You need to use the same</span><br/><span class="hl-4">// hash function the tree was originally created with.</span><br/><span class="hl-2">console</span><span class="hl-0">.</span><span class="hl-6">log</span><span class="hl-0">(</span><span class="hl-3">&#39;validated?&#39;</span><span class="hl-0">, </span><span class="hl-2">Tree</span><span class="hl-0">.</span><span class="hl-6">validate</span><span class="hl-0">(</span><span class="hl-2">r</span><span class="hl-0">, </span><span class="hl-2">p</span><span class="hl-0">, </span><span class="hl-2">d</span><span class="hl-0">, </span><span class="hl-2">sha256</span><span class="hl-0">)) </span><span class="hl-4">// returns true or false</span>
 </code></pre>
-<p>Browser:</p>
-<pre><code class="language-javascript">
+<p>A more detailed version of this example can be found in [examples/example.cjs].</p>
+
+<a href="#api-documentation" id="api-documentation" style="color: inherit; text-decoration: none;">
+  <h2>API Documentation</h2>
+</a>
+<p>The <a href="https://truestamp.github.io/truestamp-tree/">TypeScript API documentation</a> for this project is generated and published upon each new release.</p>
+
+<a href="#performance" id="performance" style="color: inherit; text-decoration: none;">
+  <h2>Performance</h2>
+</a>
+<p>Using the example code on a MacBook Pro and the following size sample data sets of random elements and the Node.js <code>crypto</code> SHA-256 function:</p>
+
+<a href="#1000-data-elements" id="1000-data-elements" style="color: inherit; text-decoration: none;">
+  <h3><code>1,000</code> data elements</h3>
+</a>
+<ul>
+<li>creates a tree in <code>13.03ms</code></li>
+<li>extracts the Merkle root from the tree in <code>0.154ms</code></li>
+<li>extracts a single Merkle inclusion proof in <code>3.42ms</code></li>
+<li>validates that proof in <code>1.15ms</code></li>
+</ul>
+
+<a href="#1000000-data-elements" id="1000000-data-elements" style="color: inherit; text-decoration: none;">
+  <h3><code>1,000,000</code> data elements</h3>
+</a>
+<ul>
+<li>creates a tree in <code>3.490s</code></li>
+<li>extracts the Merkle root from the tree in <code>0.204ms</code></li>
+<li>extracts a single Merkle inclusion proof in <code>23.139ms</code></li>
+<li>validates that proof in <code>1.533ms</code></li>
+</ul>
+
+<a href="#testing" id="testing" style="color: inherit; text-decoration: none;">
+  <h2>Testing</h2>
+</a>
+<p>This library aims to maintain 100% code test coverage.</p>
+<pre><code class="language-sh"><span class="hl-0">npm i</span><br/><span class="hl-0">npm </span><span class="hl-6">test</span>
 </code></pre>
+
+<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+  <h2>Contributing</h2>
+</a>
+<p>We&#39;d love you to join our network of contributors. Please read
+<a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for help getting started.</p>
+
+<a href="#releasing" id="releasing" style="color: inherit; text-decoration: none;">
+  <h3>Releasing</h3>
+</a>
+<ul>
+<li>Commit changes, merge PR&#39;s to <code>main</code> branch</li>
+<li>Bump <code>version</code> field in <code>package.json</code></li>
+<li>Cut a new <a href="https://github.com/truestamp/truestamp-tree/releases">release</a></li>
+<li>New release will trigger workflow to build, test, and publish package to
+<a href="https://github.com/truestamp/truestamp-tree/packages">Github Package Registry</a>
+and <a href="https://www.npmjs.com/package/@truestamp/tree">NPM.js</a>.</li>
+</ul>
+
+<a href="#code-of-conduct" id="code-of-conduct" style="color: inherit; text-decoration: none;">
+  <h2>Code of Conduct</h2>
+</a>
+<p>We expect all members of the community to respect our
+<a href="CODE_OF_CONDUCT.md">Code of Conduct</a> at all times.</p>
+
+<a href="#legal" id="legal" style="color: inherit; text-decoration: none;">
+  <h2>Legal</h2>
+</a>
+<p>Copyright © 2022 Truestamp Inc. All Rights Reserved.</p>
 </div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-class"><a href="classes/Tree.html" class="tsd-kind-icon">Tree</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ProofHex" class="tsd-kind-icon">Proof<wbr/>Hex</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ProofLayer" class="tsd-kind-icon">Proof<wbr/>Layer</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ProofObject" class="tsd-kind-icon">Proof<wbr/>Object</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TreeData" class="tsd-kind-icon">Tree<wbr/>Data</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TreeHashFunction" class="tsd-kind-icon">Tree<wbr/>Hash<wbr/>Function</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TreeOptions" class="tsd-kind-icon">Tree<wbr/>Options</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TreeTree" class="tsd-kind-icon">Tree<wbr/>Tree</a></li><li class="tsd-kind-variable"><a href="modules.html#ProofHexStruct" class="tsd-kind-icon">Proof<wbr/>Hex<wbr/>Struct</a></li><li class="tsd-kind-variable"><a href="modules.html#ProofLayerStruct" class="tsd-kind-icon">Proof<wbr/>Layer<wbr/>Struct</a></li><li class="tsd-kind-variable"><a href="modules.html#ProofObjectStruct" class="tsd-kind-icon">Proof<wbr/>Object<wbr/>Struct</a></li><li class="tsd-kind-variable"><a href="modules.html#TreeDataStruct" class="tsd-kind-icon">Tree<wbr/>Data<wbr/>Struct</a></li><li class="tsd-kind-variable"><a href="modules.html#TreeOptionsStruct" class="tsd-kind-icon">Tree<wbr/>Options<wbr/>Struct</a></li><li class="tsd-kind-variable"><a href="modules.html#TreeTreeStruct" class="tsd-kind-icon">Tree<wbr/>Tree<wbr/>Struct</a></li><li class="tsd-kind-function"><a href="modules.html#compare" class="tsd-kind-icon">compare</a></li><li class="tsd-kind-function"><a href="modules.html#concat" class="tsd-kind-icon">concat</a></li><li class="tsd-kind-function"><a href="modules.html#decodeHex" class="tsd-kind-icon">decode<wbr/>Hex</a></li><li class="tsd-kind-function"><a href="modules.html#encodeHex" class="tsd-kind-icon">encode<wbr/>Hex</a></li><li class="tsd-kind-function"><a href="modules.html#powerOfTwo" class="tsd-kind-icon">power<wbr/>Of<wbr/>Two</a></li><li class="tsd-kind-function"><a href="modules.html#validateHashFunction" class="tsd-kind-icon">validate<wbr/>Hash<wbr/>Function</a></li></ul></nav></div></div></div><footer class=""><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li><li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li><li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li></ul><ul class="tsd-legend"><li class="tsd-kind-method tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="overlay"></div><script src="assets/main.js"></script></body></html>
