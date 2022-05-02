@@ -36,6 +36,9 @@ export function validate(
   const intermediateStepLen = data.length + 1
 
   // The proof length must be divisible by the proofStepLen
+  // Also ensures that each intermediateHash must be the same
+  // length as the hash function output since the proof is
+  // equally divisible.
   if (proof.length % intermediateStepLen !== 0) {
     return false
   }
@@ -52,10 +55,6 @@ export function validate(
       i + intermediateStepLen,
     )
 
-    // Each intermediateHash must be the same length as the hash function output
-    if (intermediateHash.length !== hashFuncOutLen) {
-      return false
-    }
     // Choose the prefix to prepend to the data when hashing
     // to prevent second pre-image attacks. The first, or leaf,
     // gets a `0x00` prefix, and the remaining, or inner, nodes

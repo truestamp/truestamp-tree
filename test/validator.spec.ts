@@ -2,13 +2,13 @@
 
 import { randomBytes } from 'crypto'
 import { Tree } from '../src/tree'
-import { sha1, sha256 } from './helpers'
+import { sha1, sha256, sliceElement } from './helpers'
 import { validate } from '../src/validator'
 
 describe('validate', () => {
   test('should return true for every proof in an unbalanced sha1 tree', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 3; ++i) {
+    for (let i = 0; i < 3; ++i) { // unbalanced
       data.push(randomBytes(20))
     }
 
@@ -38,7 +38,7 @@ describe('validate', () => {
 
   test('should return true for every proof in an unbalanced sha256 tree', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 3; ++i) {
+    for (let i = 0; i < 3; ++i) { // unbalanced
       data.push(randomBytes(32))
     }
 
@@ -65,4 +65,20 @@ describe('validate', () => {
       ).toBeTruthy()
     }
   })
+
+  test('should return false if the intermediate hash in a proof is not the correct length', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 16; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256, { requireBalanced: true })
+
+    for (const d of data) {
+      expect(
+        validate(tree.root(), sliceElement(tree.proof(d), 64), d, sha256),
+      ).toBeFalsy()
+    }
+  })
+
 })
