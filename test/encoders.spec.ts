@@ -11,7 +11,7 @@ import { encodeHex } from '../src/utils'
 describe('proofToHex and hexToProof roundtrip', () => {
   test('should encode/decode valid sha1 hex proofs', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 128; i++) {
+    for (let i = 0; i < 16; i++) {
       data.push(randomBytes(20))
     }
 
@@ -29,7 +29,7 @@ describe('proofToHex and hexToProof roundtrip', () => {
 
   test('should encode/decode valid sha256 hex proofs', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 128; i++) {
+    for (let i = 0; i < 16; i++) {
       data.push(randomBytes(32))
     }
 
@@ -69,7 +69,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
 
   test('should encode/decode valid sha1 object proofs', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 128; i++) {
+    for (let i = 0; i < 16; i++) {
       data.push(randomBytes(20))
     }
 
@@ -86,7 +86,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
 
   test('should encode/decode valid sha256 object proofs', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 128; i++) {
+    for (let i = 0; i < 16; i++) {
       data.push(randomBytes(32))
     }
 

@@ -75,7 +75,7 @@ describe('should pass ported tape test', () => {
 
   test('binary 4', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 1000; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(20))
     }
 
@@ -92,7 +92,7 @@ describe('should pass ported tape test', () => {
 describe('Tree', () => {
   test('should be usable with sha256 hash function', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 1000; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
     }
 
@@ -197,7 +197,7 @@ describe('Tree.proof', () => {
 
   test('should return a verifiable proof with data length == 256', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 256; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
     }
 
@@ -214,7 +214,7 @@ describe('Tree.proof', () => {
 describe('Tree.proofHex', () => {
   test('should throw if the target cannot be found', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 10; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
     }
 
@@ -241,7 +241,7 @@ describe('Tree.proofHex', () => {
 
   test('should return a verifiable proof with data length == 256', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 256; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
     }
 
@@ -285,7 +285,7 @@ describe('Tree.proofObject', () => {
 
   test('should return a verifiable proof with data length == 256', () => {
     const data: Buffer[] = []
-    for (let i = 0; i < 256; ++i) {
+    for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
     }
 
@@ -303,7 +303,7 @@ describe('Tree.validate', () => {
   describe('Uint8Array proof', () => {
     test('should not validate if any proof hashes are of the wrong length', () => {
       const data: Buffer[] = []
-      for (let i = 0; i < 256; ++i) {
+      for (let i = 0; i < 16; ++i) {
         data.push(randomBytes(32))
       }
 
