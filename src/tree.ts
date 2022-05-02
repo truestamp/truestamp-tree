@@ -19,6 +19,8 @@ import {
   powerOfTwo,
   treeDataHasExpectedLength,
   validateHashFunction,
+  INNER_NODE_PREFIX,
+  LEAF_NODE_PREFIX,
 } from './utils'
 import {
   hexToProof,
@@ -134,8 +136,13 @@ export class Tree {
    * Constructs the internal Merkle tree structure recursively from the `data` provided at Tree creation time. Appends Tree layers and the Merkle root to the `tree` property.
    * @param data An array of data items.
    * @param hashFunction The hash function to use for Tree construction.
+   * @param leaves Determine if building leaf nodes or inner nodes. '0x00' prefix for leaf nodes, '0x01' prefix for inner nodes.
    */
-  private build(data: Uint8Array[], hashFunction: TreeHashFunction): void {
+  private build(
+    data: Uint8Array[],
+    hashFunction: TreeHashFunction,
+    leaves = true, // process leaves first (default) which get a different prefix
+  ): void {
     this.tree.push(data)
 
     // Either a single item tree (in which case the data element
@@ -146,14 +153,21 @@ export class Tree {
     const newLevel: TreeData = []
 
     for (let i = 0; i < data.length; i += 2) {
+      // Choose the prefix to prepend to the data when hashing
+      // to prevent second pre-image attacks. The first, or leaf,
+      // gets a `0x00` prefix, and the remaining, or inner, nodes
+      // get a `0x01` prefix. This needs to be applied during the
+      // validation process as well.
+      const prefix: Uint8Array = leaves ? LEAF_NODE_PREFIX : INNER_NODE_PREFIX
+
       // Left
       const d1 = data[i]
       // Right, or duplicate left if an unbalanced tree
       const d2 = data[i + 1] || d1
-      newLevel.push(hashFunction(concat(d1, d2)))
+      newLevel.push(hashFunction(concat(prefix, concat(d1, d2))))
     }
 
-    this.build(newLevel, hashFunction)
+    this.build(newLevel, hashFunction, false)
   }
 
   /**

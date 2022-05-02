@@ -1,7 +1,13 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { TreeHashFunction } from './types'
-import { compare, concat, validateHashFunction } from '../src/utils'
+import {
+  compare,
+  concat,
+  validateHashFunction,
+  LEAF_NODE_PREFIX,
+  INNER_NODE_PREFIX,
+} from '../src/utils'
 
 /**
  * @ignore
@@ -50,14 +56,19 @@ export function validate(
     if (intermediateHash.length !== hashFuncOutLen) {
       return false
     }
+    // Choose the prefix to prepend to the data when hashing
+    // to prevent second pre-image attacks. The first, or leaf,
+    // gets a `0x00` prefix, and the remaining, or inner, nodes
+    // get a `0x01` prefix.
+    const prefix: Uint8Array = i === 0 ? LEAF_NODE_PREFIX : INNER_NODE_PREFIX
 
     // left or right concatenate the data and the intermediateHash
     // and hash the result, always building on the previous value
     // of data.
     data = hashFunction(
       proof[i]
-        ? concat(intermediateHash, data)
-        : concat(data, intermediateHash),
+        ? concat(prefix, concat(intermediateHash, data))
+        : concat(prefix, concat(data, intermediateHash)),
     )
   }
 

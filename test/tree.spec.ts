@@ -8,7 +8,7 @@ import { sha1, sha256, sliceElement } from './helpers'
 describe('should pass ported tape test', () => {
   test('binary 1', () => {
     const d = randomBytes(20)
-    const tree = new Tree([d], sha1, { requireBalanced: false })
+    const tree = new Tree([d], sha1)
     expect(tree.root()).toEqual(d)
     expect(tree.proof(d).length).toEqual(0)
     expect(Tree.validate(d, new Uint8Array(0), d, sha1)).toBeTruthy()
@@ -18,7 +18,7 @@ describe('should pass ported tape test', () => {
   test('binary 2', () => {
     const d1 = Buffer.from('73b824aa6091c14ce5d72d17b4e84317afba4cee', 'hex')
     const d2 = Buffer.from('93158d5aa8dda6d8fe8db6b3c80448312c4ed52c', 'hex')
-    const root = Buffer.from('f7a66262edf364a8d23f487cb59d37446ec0fbd1', 'hex')
+    const root = Buffer.from('098e44f5b2e46f815d9c53cb6acce5638bf23fa1', 'hex')
     const proof1 = Buffer.from(
       '0093158d5aa8dda6d8fe8db6b3c80448312c4ed52c',
       'hex',
@@ -27,7 +27,7 @@ describe('should pass ported tape test', () => {
       '0173b824aa6091c14ce5d72d17b4e84317afba4cee',
       'hex',
     )
-    const tree = new Tree([d1, d2], sha1, { requireBalanced: false })
+    const tree = new Tree([d1, d2], sha1)
 
     expect(tree.root().join(',')).toEqual(root.join(','))
     expect(tree.proof(d1).join(',')).toEqual(proof1.join(','))
@@ -44,20 +44,20 @@ describe('should pass ported tape test', () => {
     const d1 = Buffer.from('8f86ba7f7481fa30716b0bc5b37650bdf4999204', 'hex')
     const d2 = Buffer.from('025e1d661e91e1c55ce9091c89512d97251c7b61', 'hex')
     const d3 = Buffer.from('bbed8ca2b401f13ab821d4f24f58a39bdabcd683', 'hex')
-    const root = Buffer.from('9d0192f5119f2c2654d9dc73233c61c0c0a26aa3', 'hex')
+    const root = Buffer.from('3516118752e9aa5490fbbbb0e104bd7ebd12845e', 'hex')
     const proof1 = Buffer.from(
-      '00025e1d661e91e1c55ce9091c89512d97251c7b6100c99a4bc9d9b292a428fc71759c83e967bf3559ca',
+      '00025e1d661e91e1c55ce9091c89512d97251c7b610027bbaac2c45f74217aa3d5bb78bc891347cb954c',
       'hex',
     )
     const proof2 = Buffer.from(
-      '018f86ba7f7481fa30716b0bc5b37650bdf499920400c99a4bc9d9b292a428fc71759c83e967bf3559ca',
+      '018f86ba7f7481fa30716b0bc5b37650bdf49992040027bbaac2c45f74217aa3d5bb78bc891347cb954c',
       'hex',
     )
     const proof3 = Buffer.from(
-      '00bbed8ca2b401f13ab821d4f24f58a39bdabcd68301f0b509ed572e51c041f1f4b902b4aa55899c205d',
+      '00bbed8ca2b401f13ab821d4f24f58a39bdabcd68301ddd5541102a1379a24bed37b5e1aa9b91dcebd04',
       'hex',
     )
-    const tree = new Tree([d1, d2, d3], sha1, { requireBalanced: false })
+    const tree = new Tree([d1, d2, d3], sha1)
 
     expect(tree.root()).toEqual(root)
     expect(tree.proof(d1).join(',')).toEqual(proof1.join(','))

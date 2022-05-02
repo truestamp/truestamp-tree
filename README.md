@@ -13,11 +13,18 @@ The library performs extensive compile time (TypeScript), and run time, validati
 
 ## Security Notes
 
-This implementation is vulnerable to a forgery attack ([as a second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack)), see these[\[1\]](https://crypto.stackexchange.com/questions/2106/what-is-the-purpose-of-using-different-hash-functions-for-the-leaves-and-interna)[\[2\]](https://crypto.stackexchange.com/questions/43430/what-is-the-reason-to-separate-domains-in-the-internal-hash-algorithm-of-a-merkl/44971#44971) crypto.stackexchange questions for an explanation.
-To avoid this vulnerability, you should pre-hash your leaves *using a different hash function* than the function provided such that `H(x) != H'(x)`, alternatively you can record tree depth alongside root hash and check it during validation.
+In order to help prevent the possibility of a second pre-image attack (see [^1] [^2] [^3]) the data leaf nodes provided to construct the tree are prefixed with a `0x00` byte. All inner nodes of the tree are prefixed with a `0x01` byte. These prefixes are also applied during the validation step.
 
-This implementation is vulnerable to a forgery attack ([for an unbalanced Merkle Tree](https://bitcointalk.org/?topic=102395)), wherein, in an unbalanced Merkle Tree, the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same root hash.
-To avoid this vulnerability, do not accept unbalanced Merkle Trees in your application (a `Tree` option is provided to allow enforcing this).
+An additional step that can be taken to avoid second pre-image attack vulnerability is to pre-hash your leaves *using a different hash function* (see [^3]) than the function provided to construct the tree so that `H(x) != H'(x)`. For example, use `sha3-256` to pre-hash the leaves, and use `sha2-256` to construct the tree.
+
+This implementation is potentially vulnerable to a forgery attack for an unbalanced Merkle Tree (see [^5]), wherein, in an unbalanced Merkle Tree, the last leaf node can be duplicated to create an artificially balanced tree. This can result in the same root hash. To avoid this vulnerability, do not construct an unbalanced Merkle Trees (where the length of the `data` array provided is not a power of 2). This library provides an optional `requireBalanced` configuration flag that will throw an `Error` if the `data.length` is not a power of 2.
+
+[^1]: [Attacking Merkle Trees With a Second Preimage Attack](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/)
+[^2]: [Merkle tree second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack)
+[^3]: [What is the purpose of using different hash functions for the leaves and internals of a hash tree?](https://crypto.stackexchange.com/questions/2106/what-is-the-purpose-of-using-different-hash-functions-for-the-leaves-and-interna)
+[^4]: [Tendermint `0x00` and `0x01` prefix implementation](https://github.com/tendermint/tendermint/blob/e0f8936455029a40287a69d5b0e7baa4d5864da1/crypto/merkle/hash.go#L20)
+[^5]: [Bitcoin Forum > Bitcoin > Bitcoin Discussion > [Full Disclosure] CVE-2012-2459 (block merkle calculation exploit)](https://bitcointalk.org/?topic=102395)
+[^6]: [Attacking Merkle Trees With a Second Preimage Attack (Hacker News)](https://news.ycombinator.com/item?id=16572793)
 
 ## Install
 
@@ -44,6 +51,9 @@ const data = rawData.map((x) => { return sha256(x.toString()) })
 
 // Construct the Merkle tree
 const t = new Tree(data, sha256)
+
+// - or to reject unbalanced trees -
+// const t = new Tree(data, sha256, { requireBalanced: true })
 
 // Get the root of the tree for later use
 const r = t.root()
