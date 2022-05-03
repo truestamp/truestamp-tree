@@ -8,12 +8,8 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
   },
-  "ts-node": {
-    "esm": true
-  },
   "include": [
-    "src/**/*",
-    "test/**/*"
+    "src/index.ts"
   ],
   "exclude": [
     "node_modules",

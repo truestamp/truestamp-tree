@@ -1,7 +1,8 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto';
-import { encodeHex, decodeHex, powerOfTwo, concat, compare, treeDataHasExpectedLength, validateHashFunction } from '../src/utils';
+import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction } from '../src/modules/utils';
+import { treeDataHasExpectedLength } from '../src/modules/tree';
 import { sha1, sha256 } from './helpers';
 
 describe('encodeHex', () => {

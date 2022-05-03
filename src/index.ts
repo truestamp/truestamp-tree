@@ -1,6 +1,14 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 export {
+  Tree,
+  proofToHex,
+  hexToProof,
+  proofToObject,
+  objectToProof,
+} from './modules/tree'
+
+export {
   ProofHex,
   ProofHexStruct,
   ProofLayer,
@@ -14,9 +22,7 @@ export {
   TreeOptionsStruct,
   TreeTree,
   TreeTreeStruct,
-} from './types'
-
-export { Tree } from './tree'
+} from './modules/types'
 
 export {
   concat,
@@ -25,4 +31,6 @@ export {
   decodeHex,
   powerOfTwo,
   validateHashFunction,
-} from './utils'
+} from './modules/utils'
+
+export { LEAF_NODE_PREFIX, INNER_NODE_PREFIX } from './modules/constants'

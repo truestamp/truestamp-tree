@@ -1,6 +1,6 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { TreeData, TreeHashFunction } from './types'
+import { TreeHashFunction } from './types'
 
 // Pre-computed conversion array
 // See : https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
@@ -9,11 +9,6 @@ for (let n = 0; n <= 0xff; n++) {
   const hexOctet = n.toString(16).padStart(2, '0')
   byteToHex.push(hexOctet)
 }
-
-//** 0x00 byte prefix applied to leaf nodes */
-export const LEAF_NODE_PREFIX: Uint8Array = new Uint8Array([0])
-//** 0x01 byte prefix applied to inner nodes */
-export const INNER_NODE_PREFIX: Uint8Array = new Uint8Array([1])
 
 /**
  * Compare two Uint8Array.
@@ -83,25 +78,6 @@ export function encodeHex(u: Uint8Array): string {
  */
 export function powerOfTwo(x: number): boolean {
   return Math.log2(x) % 1 === 0
-}
-
-/**
- * Validate that each entry in a TreeData has a length that matches the hash function output length.
- * @hidden
- * @param data The TreeData array.
- * @param length The tested length of the hash function output.
- */
-export function treeDataHasExpectedLength(
-  data: TreeData,
-  length: number,
-): void {
-  for (const d of data) {
-    if (d.length !== length) {
-      throw new Error(
-        "argument 'data' array contains items that don't match the hash function output length",
-      )
-    }
-  }
 }
 
 /**

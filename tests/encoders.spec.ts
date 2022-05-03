@@ -1,12 +1,12 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto'
-import { proofToHex, hexToProof, proofToObject, objectToProof } from '../src/encoders'
-import { Tree } from '../src/tree'
+import { proofToHex, hexToProof, proofToObject, objectToProof } from '../src/modules/tree'
+import { Tree } from '../src/modules/tree'
 import { sha1, sha256 } from './helpers'
-import { verify } from '../src/verifier'
-import { ProofObject, ProofObjectStruct, TreeHashFunction } from '../src/types'
-import { encodeHex } from '../src/utils'
+import { verify } from '../src/modules/tree'
+import { ProofObject, ProofObjectStruct, TreeHashFunction } from '../src/modules/types'
+import { encodeHex } from '../src/modules/utils'
 
 describe('proofToHex and hexToProof roundtrip', () => {
   test('should encode/decode verifiable sha1 hex proofs', () => {

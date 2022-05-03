@@ -32,17 +32,17 @@
     "dist"
   ],
   "source": "src/index.ts",
-  "main": "dist/tree.cjs",
-  "umd:main": "dist/tree.umd.js",
-  "module": "./dist/tree.module.js",
-  "unpkg": "./dist/tree.umd.js",
-  "jsdelivr": "./dist/tree.umd.js",
-  "types": "./dist/tree.d.ts",
+  "main": "dist/index.cjs",
+  "umd:main": "dist/index.umd.js",
+  "module": "./dist/index.module.js",
+  "unpkg": "./dist/index.umd.js",
+  "jsdelivr": "./dist/index.umd.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    "require": "./dist/tree.cjs",
-    "import": "./dist/tree.module.js",
-    "node": "./dist/tree.cjs",
-    "default": "./dist/tree.module.js"
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.module.js",
+    "node": "./dist/index.cjs",
+    "default": "./dist/index.module.js"
   },
   "scripts": {
     "clean": "rimraf dist && rimraf docs",

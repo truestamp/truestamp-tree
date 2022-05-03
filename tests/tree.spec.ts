@@ -1,7 +1,7 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto'
-import { Tree } from '../src/tree'
+import { Tree } from '../src/modules/tree'
 import { sha1, sha256, sliceElement } from './helpers'
 
 
