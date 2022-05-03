@@ -4,12 +4,12 @@ import { randomBytes } from 'crypto'
 import { proofToHex, hexToProof, proofToObject, objectToProof } from '../src/encoders'
 import { Tree } from '../src/tree'
 import { sha1, sha256 } from './helpers'
-import { validate } from '../src/validator'
+import { verify } from '../src/verifier'
 import { ProofObject, ProofObjectStruct, TreeHashFunction } from '../src/types'
 import { encodeHex } from '../src/utils'
 
 describe('proofToHex and hexToProof roundtrip', () => {
-  test('should encode/decode valid sha1 hex proofs', () => {
+  test('should encode/decode verifiable sha1 hex proofs', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; i++) {
       data.push(randomBytes(20))
@@ -23,11 +23,11 @@ describe('proofToHex and hexToProof roundtrip', () => {
       const hexProof = proofToHex(proof)
       expect(typeof hexProof).toEqual('string')
       expect(hexProof).toMatch(/^[0-9a-f]+$/)
-      expect(validate(tree.root(), hexToProof(hexProof), data[i], sha1)).toBeTruthy()
+      expect(verify(tree.root(), hexToProof(hexProof), data[i], sha1)).toBeTruthy()
     }
   })
 
-  test('should encode/decode valid sha256 hex proofs', () => {
+  test('should encode/decode verifiable sha256 hex proofs', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; i++) {
       data.push(randomBytes(32))
@@ -41,7 +41,7 @@ describe('proofToHex and hexToProof roundtrip', () => {
       const hexProof = proofToHex(proof)
       expect(typeof hexProof).toEqual('string')
       expect(hexProof).toMatch(/^[0-9a-f]+$/)
-      expect(validate(tree.root(), hexToProof(hexProof), data[i], sha256)).toBeTruthy()
+      expect(verify(tree.root(), hexToProof(hexProof), data[i], sha256)).toBeTruthy()
     }
   })
 })
@@ -60,14 +60,14 @@ describe('proofToObject and objectToProof roundtrip', () => {
     proof.p[2] = [0, encodeHex(randomBytes(20))] // change the hash length
 
     const t = () => {
-      validate(tree.root(), objectToProof(proof), data[4], sha256)
+      verify(tree.root(), objectToProof(proof), data[4], sha256)
     }
 
     expect(t).toThrow(Error)
     expect(t).toThrow('all object proof hashes must be the same length')
   })
 
-  test('should encode/decode valid sha1 object proofs', () => {
+  test('should encode/decode verifiable sha1 object proofs', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; i++) {
       data.push(randomBytes(20))
@@ -80,11 +80,11 @@ describe('proofToObject and objectToProof roundtrip', () => {
       const proof = tree.proof(data[i])
       const objProof: ProofObject = proofToObject(proof, 20)
       expect(typeof objProof).toEqual('object')
-      expect(validate(tree.root(), objectToProof(objProof), data[i], sha1)).toBeTruthy()
+      expect(verify(tree.root(), objectToProof(objProof), data[i], sha1)).toBeTruthy()
     }
   })
 
-  test('should encode/decode valid sha256 object proofs', () => {
+  test('should encode/decode verifiable sha256 object proofs', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; i++) {
       data.push(randomBytes(32))
@@ -97,7 +97,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
       const proof = tree.proof(data[i])
       const objProof: ProofObject = proofToObject(proof, 32)
       expect(typeof objProof).toEqual('object')
-      expect(validate(tree.root(), objectToProof(objProof), data[i], sha256)).toBeTruthy()
+      expect(verify(tree.root(), objectToProof(objProof), data[i], sha256)).toBeTruthy()
     }
   })
 })

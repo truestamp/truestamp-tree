@@ -3,9 +3,9 @@
 import { randomBytes } from 'crypto'
 import { Tree } from '../src/tree'
 import { sha1, sha256, sliceElement } from './helpers'
-import { validate } from '../src/validator'
+import { verify } from '../src/verifier'
 
-describe('validate', () => {
+describe('verify', () => {
   test('should return true for every proof in an unbalanced sha1 tree', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 3; ++i) { // unbalanced
@@ -16,7 +16,7 @@ describe('validate', () => {
 
     for (const d of data) {
       expect(
-        validate(tree.root(), tree.proof(d), d, sha1),
+        verify(tree.root(), tree.proof(d), d, sha1),
       ).toBeTruthy()
     }
   })
@@ -31,7 +31,7 @@ describe('validate', () => {
 
     for (const d of data) {
       expect(
-        validate(tree.root(), tree.proof(d), d, sha1),
+        verify(tree.root(), tree.proof(d), d, sha1),
       ).toBeTruthy()
     }
   })
@@ -46,7 +46,7 @@ describe('validate', () => {
 
     for (const d of data) {
       expect(
-        validate(tree.root(), tree.proof(d), d, sha256),
+        verify(tree.root(), tree.proof(d), d, sha256),
       ).toBeTruthy()
     }
   })
@@ -61,7 +61,7 @@ describe('validate', () => {
 
     for (const d of data) {
       expect(
-        validate(tree.root(), tree.proof(d), d, sha256),
+        verify(tree.root(), tree.proof(d), d, sha256),
       ).toBeTruthy()
     }
   })
@@ -76,7 +76,7 @@ describe('validate', () => {
 
     for (const d of data) {
       expect(
-        validate(tree.root(), sliceElement(tree.proof(d), 64), d, sha256),
+        verify(tree.root(), sliceElement(tree.proof(d), 64), d, sha256),
       ).toBeFalsy()
     }
   })

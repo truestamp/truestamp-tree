@@ -28,7 +28,7 @@ import {
   proofToObject,
   objectToProof,
 } from './encoders'
-import { validate } from './validator'
+import { verify } from './verifier'
 
 /** Class representing a Merkle tree. */
 export class Tree {
@@ -110,25 +110,25 @@ export class Tree {
   }
 
   /**
-   * Validate a proof against the Merkle `root`, `data`, and `hashFunction` generated at Tree creation time.
+   * Verify a proof against the Merkle `root`, `data`, and `hashFunction` generated at Tree creation time.
    * @param root The Merkle `root` value of a tree.
    * @param proof The Merkle inclusion `proof` that allows traversal from the `data` to the `root`. The `proof` can be provided in any of the supported encodings.
    * @param data A single data item, exactly as added to the original tree, that the `proof` was generated for.
    * @param hashFunction The hash function, must be the same as that used to create the tree originally.
-   * @return A boolean to indicate validation success or failure.
+   * @return A boolean to indicate verification success or failure.
    */
-  public static validate(
+  public static verify(
     root: Uint8Array,
     proof: Uint8Array | ProofHex | ProofObject,
     data: Uint8Array,
     hashFunction: TreeHashFunction,
   ): boolean {
     if (is(proof, ProofHexStruct)) {
-      return validate(root, hexToProof(proof), data, hashFunction)
+      return verify(root, hexToProof(proof), data, hashFunction)
     } else if (is(proof, ProofObjectStruct)) {
-      return validate(root, objectToProof(proof), data, hashFunction)
+      return verify(root, objectToProof(proof), data, hashFunction)
     } else {
-      return validate(root, proof, data, hashFunction)
+      return verify(root, proof, data, hashFunction)
     }
   }
 
@@ -157,7 +157,7 @@ export class Tree {
       // to prevent second pre-image attacks. The first, or leaf,
       // gets a `0x00` prefix, and the remaining, or inner, nodes
       // get a `0x01` prefix. This needs to be applied during the
-      // validation process as well.
+      // verification process as well.
       const prefix: Uint8Array = leaves ? LEAF_NODE_PREFIX : INNER_NODE_PREFIX
 
       // Left

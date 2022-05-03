@@ -13,7 +13,7 @@ import {
  * @ignore
  * See instead {@link Tree.validate} which wraps this function.
  */
-export function validate(
+export function verify(
   root: Uint8Array,
   proof: Uint8Array,
   data: Uint8Array,
