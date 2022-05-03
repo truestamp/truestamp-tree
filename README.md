@@ -58,7 +58,7 @@ const t = new Tree(data, sha256)
 // Get the root of the tree for later use
 const r = t.root()
 
-// Pick (and store a verifiable copy) of one of the data elements that will be validated.
+// Pick (and store a verifiable copy) of one of the data elements that will be verified.
 // (you can do the same for every data element to store and later verify )
 const d = data[Math.floor(Math.random() * data.length)]
 
@@ -67,10 +67,10 @@ const d = data[Math.floor(Math.random() * data.length)]
 // (you can do the same for every data element to store and later verify )
 const p = t.proofObject(d)
 
-// At any time in the future, validate your proof by providing
+// At any time in the future, verify your proof by providing
 // the stored root, the proof, and data. You need to use the same
 // hash function the tree was originally created with.
-console.log('validated?', Tree.validate(r, p, d, sha256)) // returns true or false
+console.log('verified?', Tree.verify(r, p, d, sha256)) // returns true or false
 ```
 
 A more detailed version of this example can be found in [examples/example.cjs].
@@ -88,14 +88,14 @@ Using the example code on a MacBook Pro and the following size sample data sets 
 * creates a tree in `13.03ms`
 * extracts the Merkle root from the tree in `0.154ms`
 * extracts a single Merkle inclusion proof in `3.42ms`
-* validates that proof in `1.15ms`
+* verifies that proof in `1.15ms`
 
 ### `1,000,000` data elements
 
 * creates a tree in `3.490s`
 * extracts the Merkle root from the tree in `0.204ms`
 * extracts a single Merkle inclusion proof in `23.139ms`
-* validates that proof in `1.533ms`
+* verifies that proof in `1.533ms`
 
 ## Testing
 

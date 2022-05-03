@@ -7,11 +7,11 @@ import {
   validateHashFunction,
   LEAF_NODE_PREFIX,
   INNER_NODE_PREFIX,
-} from '../src/utils'
+} from './utils'
 
 /**
  * @ignore
- * See instead {@link Tree.validate} which wraps this function.
+ * See instead {@link Tree.verify} which wraps this function.
  */
 export function verify(
   root: Uint8Array,

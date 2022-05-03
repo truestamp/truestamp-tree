@@ -71,6 +71,6 @@ console.timeEnd('proof')
 // * (d) the data element to verify
 // * the hash function used to compute the original Merkle tree
 //
-console.time('validate')
-console.log('validated?', Tree.validate(r, p, d, sha256)) // true or false
-console.timeEnd('validate')
+console.time('verify')
+console.log('verified?', Tree.verify(r, p, d, sha256)) // true or false
+console.timeEnd('verify')
