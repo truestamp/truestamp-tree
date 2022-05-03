@@ -1,6 +1,6 @@
 node_modules
 dist
-test
+tests
 jest.config.mjs
 examples/example.cjs
 perf.js
