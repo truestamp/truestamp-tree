@@ -6,7 +6,6 @@ import {
   ProofHex,
   ProofHexStruct,
   ProofLayer,
-  ProofLayerStruct,
   ProofObject,
   ProofObjectStruct,
   TreeData,
