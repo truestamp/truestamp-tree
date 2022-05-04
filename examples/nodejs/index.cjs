@@ -1,14 +1,15 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-// Usage:
-// You can run this sample with:
-//   node example.cjs
-//
+// Usage: run this sample with:
+//   npm run build (in the root of the repository)
+//   cd examples/nodejs
+//   node index.cjs
+
 // For more detailed info about speed and memory usage:
 //
 // macOS + Homebrew:
 //   brew install gnu-time
-//   gtime --verbose node example.cjs
+//   gtime --verbose node index.cjs
 
 // NOTE:
 // Each of the code sections below is wrapped in `console.time()`
@@ -19,25 +20,26 @@
 // tested with 10 million data elements on a laptop which is
 // probably much larger than most real world data sets.
 
-const { Tree, encodeHex } = require('../dist/index.cjs')
+const { Tree, encodeHex } = require('../../dist/index.cjs')
+
+// Native crypto library
 const crypto = require('crypto')
 
 // Setup a hash function for the tree
 // It must take a single argument of type Uint8Array and
-// return a Uint8Array of the hash value. This example
-// uses the Node.js crypto library.
+// should return a Uint8Array of the hash value.
 function sha256(data) {
-  return crypto.createHash('sha256').update(data).digest()
+  return new Uint8Array(crypto.createHash('sha256').update(data).digest().buffer)
 }
 
 // Construct some sample data. In the real world this would be
-// the hash of the data you want to store in the Tree as shown
-// here in the output of the map function.
+// the hash of the data you want to store in the Tree instead of
+// randomBytes().
 console.time('data')
 const ARRAY_LENGTH = 1_000
 console.log('ARRAY_LENGTH', ARRAY_LENGTH)
-const rawData = Array.from(Array(ARRAY_LENGTH)).map(() => Math.random())
-const data = rawData.map((x) => { return sha256(x.toString()) })
+const rawData = Array.from(Array(ARRAY_LENGTH)).map(() => crypto.randomBytes(10))
+const data = rawData.map((x) => { return sha256(x) })
 console.timeEnd('data')
 
 // Construct a Merkle Tree from the data and hash function
