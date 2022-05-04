@@ -5,8 +5,9 @@ import { proofToHex, hexToProof, proofToObject, objectToProof } from '../src/mod
 import { Tree } from '../src/modules/tree'
 import { sha1, sha256 } from './helpers'
 import { verify } from '../src/modules/tree'
-import { ProofObject, ProofObjectStruct, TreeHashFunction } from '../src/modules/types'
+import { ProofHexStruct, ProofObject, ProofObjectStruct, TreeHashFunction } from '../src/modules/types'
 import { encodeHex } from '../src/modules/utils'
+import { assert } from 'superstruct'
 
 describe('proofToHex and hexToProof roundtrip', () => {
   test('should encode/decode verifiable sha1 hex proofs', () => {
@@ -24,6 +25,7 @@ describe('proofToHex and hexToProof roundtrip', () => {
       expect(typeof hexProof).toEqual('string')
       expect(hexProof).toMatch(/^[0-9a-f]+$/)
       expect(verify(tree.root(), hexToProof(hexProof), data[i], sha1)).toBeTruthy()
+      expect(assert(hexProof, ProofHexStruct)).toBeUndefined()
     }
   })
 
@@ -42,6 +44,7 @@ describe('proofToHex and hexToProof roundtrip', () => {
       expect(typeof hexProof).toEqual('string')
       expect(hexProof).toMatch(/^[0-9a-f]+$/)
       expect(verify(tree.root(), hexToProof(hexProof), data[i], sha256)).toBeTruthy()
+      expect(assert(hexProof, ProofHexStruct)).toBeUndefined()
     }
   })
 })
@@ -81,6 +84,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
       const objProof: ProofObject = proofToObject(proof, 20)
       expect(typeof objProof).toEqual('object')
       expect(verify(tree.root(), objectToProof(objProof), data[i], sha1)).toBeTruthy()
+      expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     }
   })
 
@@ -98,6 +102,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
       const objProof: ProofObject = proofToObject(proof, 32)
       expect(typeof objProof).toEqual('object')
       expect(verify(tree.root(), objectToProof(objProof), data[i], sha256)).toBeTruthy()
+      expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     }
   })
 })

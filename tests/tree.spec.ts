@@ -3,7 +3,8 @@
 import { randomBytes } from 'crypto'
 import { Tree } from '../src/modules/tree'
 import { sha1, sha256, sliceElement } from './helpers'
-
+import { ProofHexStruct, ProofObjectStruct } from '../src/modules/types'
+import { assert } from 'superstruct'
 
 describe('should pass ported tape test', () => {
   test('binary 1', () => {
@@ -249,6 +250,7 @@ describe('Tree.proofHex', () => {
 
     const proof = tree.proofHex(data[1])
     expect(typeof proof).toBe('string')
+    expect(assert(proof, ProofHexStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], sha256),
     ).toBeTruthy()
@@ -278,6 +280,7 @@ describe('Tree.proofObject', () => {
     const tree = new Tree(data, sha256)
     const proof = tree.proofObject(data[1])
     expect(typeof proof).toBe('object')
+    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], sha256),
     ).toBeTruthy()
@@ -292,7 +295,7 @@ describe('Tree.proofObject', () => {
     const tree = new Tree(data, sha256)
 
     const proof = tree.proofObject(data[1])
-    expect(typeof proof).toBe('object')
+    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], sha256),
     ).toBeTruthy()
@@ -325,6 +328,7 @@ describe('Tree.verify', () => {
 
       const tree = new Tree(data, sha256)
       const proof = tree.proof(data[1])
+      expect(proof).toBeInstanceOf(Uint8Array)
 
       // manipulate the data
       const slicedData = sliceElement(data[1], 2)
@@ -382,6 +386,7 @@ describe('Tree.verify', () => {
 
       const proof = tree.proofHex(data[1])
       expect(typeof proof).toBe('string')
+      expect(assert(proof, ProofHexStruct)).toBeUndefined()
       expect(
         Tree.verify(tree.root(), proof, data[1], sha256),
       ).toBeTruthy()
@@ -417,7 +422,7 @@ describe('Tree.verify', () => {
     const tree = new Tree(data, sha256)
 
     const proof = tree.proofObject(data[1])
-    expect(typeof proof).toBe('object')
+    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], sha256),
     ).toBeTruthy()
