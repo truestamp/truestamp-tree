@@ -1,5 +1,6 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
+import { createHash } from 'sha256-uint8array'
 import { TreeHashFunction } from './types'
 
 // Pre-computed conversion array
@@ -98,4 +99,20 @@ export function validateHashFunction(f: TreeHashFunction): number {
     )
   }
   return hashLength
+}
+
+// Pure JavaScript implementation of the SHA-256 hash function that
+// accepts and returns Uint8Array.
+// const createHash = require("sha256-uint8array").createHash;
+
+/**
+ * Pure JavaScript SHA256 hash function that accepts and returns Uint8Array values.
+ * Faster native code implementations may be available for some platforms, but this
+ * implementation is pure JavaScript and should work anywhere and is provided as a
+ * convenience. See {@link https://github.com/kawanet/sha256-uint8array}
+ * @param data The data to hash with SHA256.
+ * @returns The hash digest.
+ */
+export function sha256(data: Uint8Array): Uint8Array {
+  return createHash().update(data).digest()
 }

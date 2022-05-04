@@ -1,9 +1,9 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto';
-import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction } from '../src/modules/utils';
+import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction, sha256 } from '../src/modules/utils';
 import { treeDataHasExpectedLength } from '../src/modules/tree';
-import { sha1, sha256 } from './helpers';
+import { sha1 as sha1Node, sha256 as sha256Node, getRandomBytes } from './helpers';
 
 describe('encodeHex', () => {
   test('should return the expected hex string', () => {
@@ -63,8 +63,8 @@ describe('validateHashFunction', () => {
   test('should return a number if valid', () => {
     const u1 = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
 
-    expect(validateHashFunction(sha1)).toBe(20);
-    expect(validateHashFunction(sha256)).toBe(32);
+    expect(validateHashFunction(sha1Node)).toBe(20);
+    expect(validateHashFunction(sha256Node)).toBe(32);
   });
 
   test('should throw if function is not a function', () => {
@@ -127,4 +127,15 @@ describe('treeDataHasExpectedLength', () => {
 
   });
 
+});
+
+describe('sha256 pure version', () => {
+  test('should return the same value as Node.js crypto implementation', () => {
+    const ARRAY_LENGTH = 1_000
+    const randomValues = Array.from(Array(ARRAY_LENGTH)).map(() => getRandomBytes(32))
+
+    for (const value of randomValues) {
+      expect(sha256(value)).toEqual(new Uint8Array(sha256Node(value).buffer));
+    }
+  });
 });

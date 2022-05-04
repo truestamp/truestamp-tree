@@ -1,6 +1,6 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { createHash } from 'crypto'
+import { createHash, randomBytes } from 'crypto'
 
 export function sha1(data: Uint8Array): Uint8Array {
   return createHash('sha1').update(data).digest()
@@ -8,6 +8,10 @@ export function sha1(data: Uint8Array): Uint8Array {
 
 export function sha256(data: Uint8Array): Uint8Array {
   return createHash('sha256').update(data).digest()
+}
+
+export function getRandomBytes(num: number): Uint8Array {
+  return new Uint8Array(randomBytes(num).buffer)
 }
 
 /**

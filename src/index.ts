@@ -30,6 +30,7 @@ export {
   encodeHex,
   decodeHex,
   powerOfTwo,
+  sha256,
   validateHashFunction,
 } from './modules/utils'
 
