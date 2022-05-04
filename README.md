@@ -19,12 +19,12 @@ An additional step that can be taken to avoid second pre-image attack vulnerabil
 
 This implementation is potentially vulnerable to a forgery attack for an unbalanced Merkle Tree (see [^5]), wherein, in an unbalanced Merkle Tree, the last leaf node can be duplicated to create an artificially balanced tree. This can result in the same root hash. To avoid this vulnerability, do not construct an unbalanced Merkle Trees (where the length of the `data` array provided is not a power of 2). This library provides an optional `requireBalanced` configuration flag that will throw an `Error` if the `data.length` is not a power of 2.
 
-[^1]: [Attacking Merkle Trees With a Second Preimage Attack](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/)
+[^1]: [Attacking Merkle Trees With a Second Pre-image Attack](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/)
 [^2]: [Merkle tree second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack)
 [^3]: [What is the purpose of using different hash functions for the leaves and internals of a hash tree?](https://crypto.stackexchange.com/questions/2106/what-is-the-purpose-of-using-different-hash-functions-for-the-leaves-and-interna)
 [^4]: [Tendermint `0x00` and `0x01` prefix implementation](https://github.com/tendermint/tendermint/blob/e0f8936455029a40287a69d5b0e7baa4d5864da1/crypto/merkle/hash.go#L20)
 [^5]: [Bitcoin Forum > Bitcoin > Bitcoin Discussion > [Full Disclosure] CVE-2012-2459 (block merkle calculation exploit)](https://bitcointalk.org/?topic=102395)
-[^6]: [Attacking Merkle Trees With a Second Preimage Attack (Hacker News)](https://news.ycombinator.com/item?id=16572793)
+[^6]: [Attacking Merkle Trees With a Second Pre-image Attack (Hacker News)](https://news.ycombinator.com/item?id=16572793)
 
 ## Install
 
