@@ -136,7 +136,7 @@ export function verify(
   // The length of the data plus a '0' or '1' byte to indicate the direction
   const intermediateStepLen = data.length + 1
 
-  // The proof length must be divisible by the proofStepLen
+  // The proof length must be divisible by the intermediateStepLen
   // Also ensures that each intermediateHash must be the same
   // length as the hash function output since the proof is
   // equally divisible.
