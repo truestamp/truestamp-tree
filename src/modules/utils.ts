@@ -2,14 +2,7 @@
 
 import { createHash } from 'sha256-uint8array'
 import { TreeHashFunction } from './types'
-
-// Pre-computed conversion array
-// See : https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
-const byteToHex: string[] = []
-for (let n = 0; n <= 0xff; n++) {
-  const hexOctet = n.toString(16).padStart(2, '0')
-  byteToHex.push(hexOctet)
-}
+import { encode, decode } from '@stablelib/hex'
 
 /**
  * Compare two Uint8Array.
@@ -47,13 +40,7 @@ export function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
  * @returns Decoded Uint8Array.
  */
 export function decodeHex(s: string): Uint8Array {
-  // return new Uint8Array(hexString.split(separator).map(b => parseInt(b, 16)))
-  const length = s.length
-  const arrayBuffer = new Uint8Array(length / 2)
-  for (let i = 0; i < length; i += 2) {
-    arrayBuffer[i / 2] = parseInt(s.substr(i, 2), 16)
-  }
-  return arrayBuffer
+  return decode(s)
 }
 
 /**
@@ -62,14 +49,8 @@ export function decodeHex(s: string): Uint8Array {
  * @returns HEX encoded Uint8Array string.
  */
 export function encodeHex(u: Uint8Array): string {
-  const buff = new Uint8Array(u)
-  const hexOctets: string[] = []
-
-  for (let i = 0; i < buff.length; i++) {
-    hexOctets.push(byteToHex[buff[i]])
-  }
-
-  return hexOctets.join('')
+  // lowercase hex string
+  return encode(u, true)
 }
 
 /**
