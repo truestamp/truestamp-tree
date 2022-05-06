@@ -438,7 +438,7 @@ export class Tree {
 
       // Push '0' or '1' depending on the position of the sibling
       // and the hash of the element it pairs with onto the proof.
-      proof.push(isRightSideElement, ...otherElement)
+      proof.push(isRightSideElement, ...otherElement.values())
 
       isRightSideElement = Math.floor((index / 2) % 2)
       index = Math.floor(index / 2) - isRightSideElement
