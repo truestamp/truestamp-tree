@@ -195,14 +195,51 @@ export function treeDataHasExpectedLength(
   }
 }
 
+/**
+ * Developer debug logging function.
+ * @param message The message to send to the console log.
+ * @param enabled The enabled flag which determines if this function logs, or is a no-op.
+ * @hidden
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function debugLog(message: any, enabled: boolean): void {
+  if (enabled) {
+    // eslint-disable-next-line no-console
+    console.debug(message)
+  }
+}
+
 /** Class representing a Merkle tree. */
 export class Tree {
-  /** The data nodes of the Merkle tree. */
+  /**
+   * The data nodes of the Merkle tree.
+   * @ignore
+   * */
   private readonly data: TreeData
-  /** The Merkle tree structure, with each layer in a new array, and the final layer is the Merkle root. */
+
+  /**
+   * The Merkle tree structure, with each layer in a new array, and the final layer is the Merkle root.
+   * @ignore
+   * */
   private readonly tree: TreeTree = []
-  /** The length, in Bytes, of the output of the hash function used to construct the tree. */
+
+  /**
+   * The length, in Bytes, of the output of the hash function used to construct the tree.
+   *  @ignore
+   * */
   private readonly hashFuncOutLen: number
+
+  /**
+   * Is debug logging enabled?
+   *  @ignore
+   * */
+  private readonly debug: boolean
+
+  /**
+   * Is requireBalanced enabled?
+   *  @ignore
+   * */
+  private readonly requireBalanced: boolean
 
   /**
    * Create a new Merkle tree.
@@ -210,23 +247,39 @@ export class Tree {
    * @param hashFunction The hash function that will be used to create the tree. It must take a single Uint8Array argument and return a Uint8Array that is between 20 and 64 bytes in length.
    * @param options The options to use when creating the tree.
    */
+  // FIXME : It should be possible to use TreeOptions type for options, but if we do that the tests get the type wrong??
   // eslint-disable-next-line prettier/prettier
-  constructor (data: TreeData, hashFunction: TreeHashFunction, options: TreeOptions = { requireBalanced: false }) {
-    const hashFuncOutLen = validateHashFunction(hashFunction)
-    this.hashFuncOutLen = hashFuncOutLen
-
+  constructor (
+    data: TreeData,
+    hashFunction: TreeHashFunction,
+    options: { requireBalanced?: boolean; debug?: boolean } = {
+      requireBalanced: false,
+      debug: false,
+    },
+  ) {
     assert(data, TreeDataStruct)
+    this.hashFuncOutLen = validateHashFunction(hashFunction)
     assert(options, TreeOptionsStruct)
 
-    if (options.requireBalanced && !powerOfTwo(data.length)) {
+    this.requireBalanced = options.requireBalanced ?? false
+    this.debug = options.debug ?? false
+
+    if (this.requireBalanced && !powerOfTwo(data.length)) {
       throw new Error(
         "argument 'data' array length must be a power of two (or set 'requireBalanced' to false)",
       )
     }
 
-    treeDataHasExpectedLength(data, hashFuncOutLen)
+    treeDataHasExpectedLength(data, this.hashFuncOutLen)
     this.data = data
     this.build(this.data, hashFunction)
+
+    debugLog(`constructor options: ${JSON.stringify(options)}`, this.debug)
+    debugLog(
+      `constructor hashFuncOutLen: ${JSON.stringify(this.hashFuncOutLen)}`,
+      this.debug,
+    )
+    debugLog(`constructor data: ${JSON.stringify(this.data)}`, this.debug)
   }
 
   /**
@@ -240,6 +293,14 @@ export class Tree {
   }
 
   /**
+   * Get the Merkle tree height, which is the number of hashing layers that resulted after building the tree not including the Merkle root. Should be `Math.ceil(Math.log2(data.length))`.
+   * @return The tree height value.
+   */
+  public height(): number {
+    return this.tree.length - 1
+  }
+
+  /**
    * Get the Merkle inclusion proof for specific data in raw form.
    * @param dataItem The single data item, already added to the tree, to get the proof for.
    * @return The Merkle inclusion proof value.
@@ -247,6 +308,10 @@ export class Tree {
   public proof(dataItem: Uint8Array): Uint8Array {
     for (let i = 0; i < this.data.length; i++) {
       if (compare(this.data[i], dataItem)) {
+        debugLog(
+          `proof dataItem found: ${JSON.stringify(dataItem)}`,
+          this.debug,
+        )
         return this.proofForIndex(i)
       }
     }
@@ -343,30 +408,53 @@ export class Tree {
    * @hidden
    */
   private proofForIndex(i: number): Uint8Array {
+    const height: number = this.height()
+
+    let level = 0
+    let isRightSideElement = Math.floor(i % 2) // '0' for left (i is even), '1' for right (i is odd)
+    let index = i - isRightSideElement
+
+    debugLog(
+      `proofForIndex i: ${i}, isRightSideElement: ${isRightSideElement}, index: ${index}`,
+      this.debug,
+    )
+
     const proof: number[] = []
-    const levels = this.tree.length - 1
 
-    let currentLevel = 0
-    let right = i % 2
-    let index = i - right
+    // Last level is the Merkle root, and is excluded
+    while (level < height) {
+      const currentLevelHashes: Uint8Array[] = this.tree[level]
 
-    // Last level is the Merkle root, and should be excluded
-    while (currentLevel < levels) {
-      const treeLevel = this.tree[currentLevel]
+      debugLog(
+        `proofForIndex entering while : level ${level} isRightSideElement: ${isRightSideElement} index: ${index}`,
+        this.debug,
+      )
 
-      // If current element is to the right - take left element,
-      // otherwise try to take right one and fallback to left if
-      // not present (unbalanced tree)
-      const otherItem = right
-        ? treeLevel[index]
-        : treeLevel[index + 1] || treeLevel[index]
+      // If current element is a right side element (1) - take left element,
+      // If current element is not a right side element, try to take right one.
+      // If there is no right element (unbalanced tree) duplicate the left.
+      const otherElement: Uint8Array = isRightSideElement
+        ? currentLevelHashes[index]
+        : currentLevelHashes[index + 1] ?? currentLevelHashes[index]
 
-      proof.push(right, ...otherItem)
-      right = (index / 2) % 2
-      index = index / 2 - right
-      currentLevel++
+      // Push '0' or '1' depending on the position of the sibling
+      // and the hash of the element it pairs with onto the proof.
+      proof.push(isRightSideElement, ...otherElement)
+
+      isRightSideElement = Math.floor((index / 2) % 2)
+      index = Math.floor(index / 2) - isRightSideElement
+
+      debugLog(
+        `proofForIndex exiting while : level ${level} isRightSideElement: ${isRightSideElement} index: ${index}`,
+        this.debug,
+      )
+
+      // Move up a level
+      level++
     }
 
-    return Uint8Array.from(proof)
+    debugLog(`proofForIndex proof data : ${JSON.stringify(proof)}`, this.debug)
+
+    return new Uint8Array(proof)
   }
 }

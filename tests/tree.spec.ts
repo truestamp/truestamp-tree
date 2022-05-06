@@ -133,7 +133,7 @@ describe('Tree', () => {
 
     test('should accept a data array with length 2', () => {
       const data = [randomBytes(32), randomBytes(32)]
-      const tree = new Tree(data, sha256, { requireBalanced: false })
+      const tree = new Tree(data, sha256, { requireBalanced: false, debug: false })
 
       for (const d of data) {
         expect(
@@ -165,6 +165,71 @@ describe('Tree', () => {
       expect(t).toThrow("argument 'data' array length must be a power of two (or set 'requireBalanced' to false)")
     })
   })
+})
+
+describe('with {debug: true}', () => {
+  test('should console.debug() output with a data array with length 2', () => {
+    const data = [randomBytes(32), randomBytes(32)]
+    const tree = new Tree(data, sha256, { debug: true })
+
+    for (const d of data) {
+      expect(
+        Tree.verify(tree.root(), tree.proof(d), d, sha256),
+      ).toBeTruthy()
+    }
+  })
+
+})
+
+describe('Tree.height', () => {
+  test('should return the expected height with data length == 1', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 1; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256)
+
+    const height = tree.height()
+    expect(height).toBe(Math.ceil(Math.log2(data.length)))
+  })
+
+  test('should return the expected height with balanced data length == 16', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 16; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256)
+
+    const height = tree.height()
+    expect(height).toBe(Math.ceil(Math.log2(data.length)))
+  })
+
+  test('should return the expected height with balanced data length == 1024', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 1024; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256)
+
+    const height = tree.height()
+    expect(height).toBe(Math.ceil(Math.log2(data.length)))
+  })
+
+  test('should return the expected height with unbalanced data length', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 21; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256)
+
+    const height = tree.height()
+    expect(height).toBe(Math.ceil(Math.log2(data.length)))
+  })
+
 })
 
 describe('Tree.proof', () => {
