@@ -1,6 +1,5 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { createHash } from 'sha256-uint8array'
 import { TreeHashFunction } from './types'
 import { encode, decode } from '@stablelib/hex'
 import { equal as stableEqual } from '@stablelib/constant-time'
