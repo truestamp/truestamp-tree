@@ -11,7 +11,6 @@ import {
   TreeData,
   TreeDataStruct,
   TreeHashFunction,
-  TreeOptions,
   TreeOptionsStruct,
   TreeTree,
 } from './types'
