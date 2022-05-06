@@ -20,7 +20,7 @@
     "cryptography",
     "hash function"
   ],
-  "version": "0.0.10",
+  "version": "0.0.11",
   "homepage": "https://truestamp.github.io/truestamp-tree/",
   "author": "Truestamp <support@truestamp.com>",
   "repository": {
