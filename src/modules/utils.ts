@@ -3,35 +3,39 @@
 import { createHash } from 'sha256-uint8array'
 import { TreeHashFunction } from './types'
 import { encode, decode } from '@stablelib/hex'
+import { equal as stableEqual } from '@stablelib/constant-time'
+import { concat as stableConcat } from '@stablelib/bytes'
+import { hash as stableSHA224 } from '@stablelib/sha224'
+import { hash as stableSHA256 } from '@stablelib/sha256'
+import { hash as stableSHA384 } from '@stablelib/sha384'
+import { hash as stableSHA512 } from '@stablelib/sha512'
+import { hash as stableSHA512_256 } from '@stablelib/sha512_256'
+import {
+  hash224 as stableSHA3224,
+  hash256 as stableSHA3256,
+  hash384 as stableSHA3384,
+  hash512 as stableSHA3512,
+} from '@stablelib/sha3'
 
 /**
- * Compare two Uint8Array.
+ * Constant time comparison of two Uint8Arrays.
+ * Returns true if a and b are of equal non-zero length, and their contents are equal, or false otherwise.
+ * Note that zero-length inputs are considered not equal, so this function will return false.
  * @param a First Uint8Array string to compare.
  * @param b Second Uint8Array string to compare.
  * @returns Boolean indicating if both args are identical.
  */
 export function compare(a: Uint8Array, b: Uint8Array): boolean {
-  if (a === b) return true
-  if (a.byteLength !== b.byteLength) return false
-
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false
-  }
-
-  return true
+  return stableEqual(a, b)
 }
 
 /**
- * Concatenate two Uint8Array.
- * @param a First Uint8Array string to concat.
- * @param b Second Uint8Array string to concat.
+ * Concatenates byte arrays.
+ * @param arrays Uint8Arrays to concatenate.
  * @returns Concatenated Uint8Array.
  */
-export function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
-  const tmp: Uint8Array = new Uint8Array(a.byteLength + b.byteLength)
-  tmp.set(new Uint8Array(a), 0)
-  tmp.set(new Uint8Array(b), a.byteLength)
-  return tmp
+export function concat(...arrays: Uint8Array[]): Uint8Array {
+  return stableConcat(...arrays)
 }
 
 /**
@@ -82,18 +86,83 @@ export function validateHashFunction(f: TreeHashFunction): number {
   return hashLength
 }
 
-// Pure JavaScript implementation of the SHA-256 hash function that
-// accepts and returns Uint8Array.
-// const createHash = require("sha256-uint8array").createHash;
+/**
+ * Pure JavaScript SHA224 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha224(data: Uint8Array): Uint8Array {
+  return stableSHA224(data)
+}
 
 /**
  * Pure JavaScript SHA256 hash function that accepts and returns Uint8Array values.
- * Faster native code implementations may be available for some platforms, but this
- * implementation is pure JavaScript and should work anywhere and is provided as a
- * convenience. See {@link https://github.com/kawanet/sha256-uint8array}
- * @param data The data to hash with SHA256.
+ * @param data The data to hash.
  * @returns The hash digest.
  */
 export function sha256(data: Uint8Array): Uint8Array {
-  return createHash().update(data).digest()
+  return stableSHA256(data)
+}
+
+/**
+ * Pure JavaScript SHA384 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha384(data: Uint8Array): Uint8Array {
+  return stableSHA384(data)
+}
+
+/**
+ * Pure JavaScript SHA512 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha512(data: Uint8Array): Uint8Array {
+  return stableSHA512(data)
+}
+
+/**
+ * Pure JavaScript SHA512/256 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha512_256(data: Uint8Array): Uint8Array {
+  return stableSHA512_256(data)
+}
+
+/**
+ * Pure JavaScript SHA3-224 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha3_224(data: Uint8Array): Uint8Array {
+  return stableSHA3224(data)
+}
+
+/**
+ * Pure JavaScript SHA3-256 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha3_256(data: Uint8Array): Uint8Array {
+  return stableSHA3256(data)
+}
+
+/**
+ * Pure JavaScript SHA3-384 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha3_384(data: Uint8Array): Uint8Array {
+  return stableSHA3384(data)
+}
+
+/**
+ * Pure JavaScript SHA3-512 hash function that accepts and returns Uint8Array values.
+ * @param data The data to hash.
+ * @returns The hash digest.
+ */
+export function sha3_512(data: Uint8Array): Uint8Array {
+  return stableSHA3512(data)
 }

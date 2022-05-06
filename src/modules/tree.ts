@@ -176,7 +176,7 @@ export function verify(
 }
 
 /**
- * Validate that each entry in a TreeData has a length that matches the hash function output length.
+ * Validate that each entry in a TreeData has a length that matches the hash function's output length.
  * @hidden
  * @param data The TreeData array.
  * @param length The tested length of the hash function output.
@@ -196,7 +196,7 @@ export function treeDataHasExpectedLength(
 
 /**
  * Developer debug logging function.
- * @param message The message to send to the console log.
+ * @param message The message to send to console.debug().
  * @param enabled The enabled flag which determines if this function logs, or is a no-op.
  * @hidden
  */

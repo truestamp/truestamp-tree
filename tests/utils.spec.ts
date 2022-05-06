@@ -1,7 +1,7 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto';
-import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction, sha256 } from '../src/modules/utils';
+import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction, sha224, sha256, sha384, sha512, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512 } from '../src/modules/utils';
 import { treeDataHasExpectedLength } from '../src/modules/tree';
 import { sha1 as sha1Node, sha256 as sha256Node, getRandomBytes } from './helpers';
 
@@ -129,13 +129,49 @@ describe('treeDataHasExpectedLength', () => {
 
 });
 
-describe('sha256 pure version', () => {
-  test('should return the same value as Node.js crypto implementation', () => {
+describe('hash functions', () => {
+  test('sha256 should return same value as Node.js crypto', () => {
     const ARRAY_LENGTH = 1_000
     const randomValues = Array.from(Array(ARRAY_LENGTH)).map(() => getRandomBytes(32))
 
     for (const value of randomValues) {
       expect(sha256(value)).toEqual(new Uint8Array(sha256Node(value).buffer));
     }
+  });
+
+  test('sha224 should return expected byte length', () => {
+    expect(sha224(new Uint8Array(randomBytes(32))).length).toBe(28);
+  });
+
+  test('sha256 should return expected byte length', () => {
+    expect(sha256(new Uint8Array(randomBytes(32))).length).toBe(32);
+  });
+
+  test('sha384 should return expected byte length', () => {
+    expect(sha384(new Uint8Array(randomBytes(32))).length).toBe(48);
+  });
+
+  test('sha512 should return expected byte length', () => {
+    expect(sha512(new Uint8Array(randomBytes(32))).length).toBe(64);
+  });
+
+  test('sha512_256 should return expected byte length', () => {
+    expect(sha512_256(new Uint8Array(randomBytes(32))).length).toBe(32);
+  });
+
+  test('sha3_224 should return expected byte length', () => {
+    expect(sha3_224(new Uint8Array(randomBytes(32))).length).toBe(28);
+  });
+
+  test('sha3_256 should return expected byte length', () => {
+    expect(sha3_256(new Uint8Array(randomBytes(32))).length).toBe(32);
+  });
+
+  test('sha3_384 should return expected byte length', () => {
+    expect(sha3_384(new Uint8Array(randomBytes(32))).length).toBe(48);
+  });
+
+  test('sha3_512 should return expected byte length', () => {
+    expect(sha3_512(new Uint8Array(randomBytes(32))).length).toBe(64);
   });
 });
