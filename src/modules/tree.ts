@@ -437,8 +437,13 @@ export class Tree {
         : currentLevelHashes[index + 1] ?? currentLevelHashes[index]
 
       // Push '0' or '1' depending on the position of the sibling
-      // and the hash of the element it pairs with onto the proof.
-      proof.push(isRightSideElement, ...otherElement.values())
+      proof.push(isRightSideElement)
+
+      // and each byte of the hash of the element it pairs with.
+      for (const byte of otherElement) {
+        debugLog(`proofForIndex otherElement byte: ${byte}`, this.debug)
+        proof.push(byte)
+      }
 
       isRightSideElement = Math.floor((index / 2) % 2)
       index = Math.floor(index / 2) - isRightSideElement

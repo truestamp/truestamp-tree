@@ -2,6 +2,7 @@
 
 import { randomBytes } from 'crypto'
 import { Tree } from '../src/modules/tree'
+import { decodeHex } from '../src/modules/utils'
 import { sha1, sha256, sliceElement } from './helpers'
 import { ProofHexStruct, ProofObjectStruct } from '../src/modules/types'
 import { assert } from 'superstruct'
@@ -169,7 +170,18 @@ describe('Tree', () => {
 
 describe('with {debug: true}', () => {
   test('should console.debug() output with a data array with length 2', () => {
-    const data = [randomBytes(32), randomBytes(32)]
+    const data = [
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
+      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347')
+    ]
     const tree = new Tree(data, sha256, { debug: true })
 
     for (const d of data) {
@@ -178,7 +190,6 @@ describe('with {debug: true}', () => {
       ).toBeTruthy()
     }
   })
-
 })
 
 describe('Tree.height', () => {
