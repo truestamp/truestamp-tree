@@ -196,7 +196,7 @@ describe('Tree.proof', () => {
     ).toBeTruthy()
   })
 
-  test('should return a verifiable proof with data length == 256', () => {
+  test('should return a verifiable proof with data length == 16', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
@@ -240,7 +240,7 @@ describe('Tree.proofHex', () => {
     ).toBeTruthy()
   })
 
-  test('should return a verifiable proof with data length == 256', () => {
+  test('should return a verifiable proof with data length == 16', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))
@@ -286,7 +286,7 @@ describe('Tree.proofObject', () => {
     ).toBeTruthy()
   })
 
-  test('should return a verifiable proof with data length == 256', () => {
+  test('should return a verifiable proof with data length == 16', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 16; ++i) {
       data.push(randomBytes(32))

@@ -302,6 +302,7 @@ export class Tree {
    * @param data An array of data items.
    * @param hashFunction The hash function to use for Tree construction.
    * @param leaves Determine if building leaf nodes or inner nodes. '0x00' prefix for leaf nodes, '0x01' prefix for inner nodes.
+   * @hidden
    */
   private build(
     data: Uint8Array[],
@@ -339,6 +340,7 @@ export class Tree {
    * Constructs a proof that traverses from a single data node found at index `i` to the Merkle root.
    * @param i The array index of the data node to build a proof for.
    * @return A proof.
+   * @hidden
    */
   private proofForIndex(i: number): Uint8Array {
     const proof: number[] = []
