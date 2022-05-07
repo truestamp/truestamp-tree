@@ -1,6 +1,5 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { TreeHashFunction } from './types'
 import { encode, decode } from '@stablelib/hex'
 import { equal as stableEqual } from '@stablelib/constant-time'
 import { concat as stableConcat } from '@stablelib/bytes'
@@ -58,31 +57,12 @@ export function encodeHex(u: Uint8Array): string {
 
 /**
  * Test whether a number is a power of two (1,2,4,8,16,32,...).
+ * This is useful for determining if the data preparing to be added to the tree is a power of two in length, and thus a balanced tree.
  * @param x Number to test.
  * @returns Boolean indicating if the number is a power of two.
  */
 export function powerOfTwo(x: number): boolean {
   return Math.log2(x) % 1 === 0
-}
-
-/**
- * Test that a hash function accepts and returns a Uint8Array, returning the hash length.
- * @param f The hash function to test.
- * @returns The length of the hash function output.
- */
-export function validateHashFunction(f: TreeHashFunction): number {
-  if (typeof f !== 'function') {
-    throw new Error('hashFunction must be a function')
-  }
-
-  const testOutput: Uint8Array = f(new Uint8Array([0]))
-  const hashLength: number = testOutput.byteLength
-  if (hashLength < 20 || hashLength > 64) {
-    throw new Error(
-      'hash function must return a non-empty Uint8Array between 20 and 64 bytes long',
-    )
-  }
-  return hashLength
 }
 
 /**

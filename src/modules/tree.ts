@@ -3,9 +3,13 @@
 import { assert, is } from 'superstruct'
 
 import {
+  MerkleRoot,
+  MerkleRootStruct,
+  ProofBinary,
+  ProofBinaryStruct,
   ProofHex,
   ProofHexStruct,
-  ProofLayer,
+  ProofObjectLayer,
   ProofObject,
   ProofObjectStruct,
   TreeData,
@@ -13,30 +17,27 @@ import {
   TreeHashFunction,
   TreeOptionsStruct,
   TreeTree,
+  TreeHashFunctionStruct,
 } from './types'
 
 import {
   compare,
   concat,
   powerOfTwo,
-  validateHashFunction,
   decodeHex,
   encodeHex,
+  sha224,
+  sha256,
+  sha384,
+  sha512,
+  sha512_256,
+  sha3_224,
+  sha3_256,
+  sha3_384,
+  sha3_512,
 } from './utils'
 
 import { INNER_NODE_PREFIX, LEAF_NODE_PREFIX } from './constants'
-
-/**
- * Encode a Uint8Array proof to a Hex string.
- * @ignore
- * @param proof The proof to encode.
- * @return The encoded proof value.
- */
-export function proofToHex(proof: Uint8Array): ProofHex {
-  const proofHex = encodeHex(proof)
-  assert(proofHex, ProofHexStruct)
-  return proofHex
-}
 
 /**
  * Decode a Hex proof to a Uint8Array.
@@ -44,34 +45,11 @@ export function proofToHex(proof: Uint8Array): ProofHex {
  * @param proofHex The proof to encode.
  * @return The encoded proof value.
  */
-export function hexToProof(proofHex: ProofHex): Uint8Array {
+function hexToProof(proofHex: ProofHex): ProofBinary {
   assert(proofHex, ProofHexStruct)
-  return decodeHex(proofHex)
-}
-
-/**
- * Encode a Uint8Array proof to an Object.
- * @ignore
- * @param proof The proof to encode.
- * @return The encoded proof value.
- */
-export function proofToObject(
-  proof: Uint8Array,
-  layerHashLen: number,
-): ProofObject {
-  const layerHashLengthPlusOne: number = layerHashLen + 1
-  const proofLength: number = proof.byteLength
-  const proofLayers: ProofLayer[] = []
-
-  for (let i = 0; i < proofLength; i += layerHashLengthPlusOne) {
-    const order: Uint8Array = proof.subarray(i, i + 1)
-    const hash: Uint8Array = proof.subarray(i + 1, i + layerHashLengthPlusOne)
-    proofLayers.push([parseInt(encodeHex(order), 16), encodeHex(hash)])
-  }
-
-  const proofObj: ProofObject = { v: 1, p: proofLayers }
-  assert(proofObj, ProofObjectStruct)
-  return proofObj
+  const proof = decodeHex(proofHex)
+  assert(proof, ProofBinaryStruct)
+  return proof
 }
 
 /**
@@ -80,7 +58,7 @@ export function proofToObject(
  * @param proofObj The proof to encode.
  * @return The encoded proof value.
  */
-export function objectToProof(proofObj: ProofObject): Uint8Array {
+function objectToProof(proofObj: ProofObject): ProofBinary {
   assert(proofObj, ProofObjectStruct)
 
   const firstProofLayerHashByteLen = proofObj.p[0][1].length / 2
@@ -106,6 +84,7 @@ export function objectToProof(proofObj: ProofObject): Uint8Array {
     proof.set(decodeHex(hash), i * (1 + firstProofLayerHashByteLen) + 1)
   }
 
+  assert(proof, ProofBinaryStruct)
   return proof
 }
 
@@ -113,13 +92,18 @@ export function objectToProof(proofObj: ProofObject): Uint8Array {
  * @ignore
  * See instead {@link Tree.verify} which wraps this function.
  */
-export function verify(
-  root: Uint8Array,
-  proof: Uint8Array,
+function verify(
+  root: MerkleRoot,
+  proof: ProofBinary,
   data: Uint8Array,
   hashFunction: TreeHashFunction,
 ): boolean {
-  const hashFuncOutLen = validateHashFunction(hashFunction)
+  assert(root, MerkleRootStruct)
+  assert(proof, ProofBinaryStruct)
+  assert(hashFunction, TreeHashFunctionStruct)
+
+  // Do a test run of the hash function to determine its output length
+  const hashFuncOutLen = hashFunction(new Uint8Array([0])).length
 
   // Single item trees return a root that is the same
   // as the data provided and an empty proof.
@@ -223,10 +207,22 @@ export class Tree {
   private readonly tree: TreeTree = []
 
   /**
+   * The hash function used to construct the tree.
+   *  @ignore
+   * */
+  private readonly hashFunction: TreeHashFunction
+
+  /**
+   * The hash function name used to construct the tree.
+   *  @ignore
+   * */
+  private readonly hashName: string
+
+  /**
    * The length, in Bytes, of the output of the hash function used to construct the tree.
    *  @ignore
    * */
-  private readonly hashFuncOutLen: number
+  private readonly hashLen: number
 
   /**
    * Is debug logging enabled?
@@ -245,6 +241,36 @@ export class Tree {
    * @param data The array of Uint8Array data values that the tree will be constructed from.
    * @param hashFunction The hash function that will be used to create the tree. It must take a single Uint8Array argument and return a Uint8Array that is between 20 and 64 bytes in length.
    * @param options The options to use when creating the tree.
+   *
+   * @example Create a new Merkle tree with a SHA-256 hash function, and a binary proof.
+   * ```javascript
+   * import { Tree, sha256 } from '@truestamp/tree'
+   * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
+   * const tree = new Tree(data, sha256)
+   * const root = tree.root()
+   * const proof = tree.proof(data[0])
+   * const verified = tree.verify(root, proof, data[0], sha256)
+   * ```
+   *
+   * @example Create a new Merkle tree with a SHA-256 hash function, and a hex proof.
+   * ```javascript
+   * import { Tree, sha256 } from '@truestamp/tree'
+   * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
+   * const tree = new Tree(data, sha256)
+   * const root = tree.root()
+   * const proof = tree.proofHex(data[0])
+   * const verified = tree.verify(root, proof, data[0], sha256)
+   * ```
+   *
+   * @example Create a new Merkle tree with a SHA-256 hash function, and an object proof.
+   * ```javascript
+   * import { Tree, sha256 } from '@truestamp/tree'
+   * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
+   * const tree = new Tree(data, sha256)
+   * const root = tree.root()
+   * const proof = tree.proofObject(data[0])
+   * const verified = tree.verify(root, proof, data[0])
+   * ```
    */
   // FIXME : It should be possible to use TreeOptions type for options, but if we do that the tests get the type wrong??
   // eslint-disable-next-line prettier/prettier
@@ -257,8 +283,12 @@ export class Tree {
     },
   ) {
     assert(data, TreeDataStruct)
-    this.hashFuncOutLen = validateHashFunction(hashFunction)
+    assert(hashFunction, TreeHashFunctionStruct)
     assert(options, TreeOptionsStruct)
+
+    this.hashLen = hashFunction(new Uint8Array([0])).length
+    this.hashFunction = hashFunction
+    this.hashName = hashFunction.name
 
     this.requireBalanced = options.requireBalanced ?? false
     this.debug = options.debug ?? false
@@ -269,13 +299,13 @@ export class Tree {
       )
     }
 
-    treeDataHasExpectedLength(data, this.hashFuncOutLen)
+    treeDataHasExpectedLength(data, this.hashLen)
     this.data = data
-    this.build(this.data, hashFunction)
+    this.build(this.data)
 
     debugLog(`constructor options: ${JSON.stringify(options)}`, this.debug)
     debugLog(
-      `constructor hashFuncOutLen: ${JSON.stringify(this.hashFuncOutLen)}`,
+      `constructor hashFuncOutLen: ${JSON.stringify(this.hashLen)}`,
       this.debug,
     )
     debugLog(`constructor data: ${JSON.stringify(this.data)}`, this.debug)
@@ -285,10 +315,13 @@ export class Tree {
    * Get the Merkle root of the tree.
    * @return The Merkle root value.
    */
-  public root(): Uint8Array {
-    // Return the zero'th element of the last level
+  public root(): MerkleRoot {
+    // The zero'th element of the last level
     // which is the root of the tree.
-    return this.tree[this.tree.length - 1][0]
+    const root = this.tree[this.tree.length - 1][0]
+
+    assert(root, MerkleRootStruct)
+    return root
   }
 
   /**
@@ -304,7 +337,7 @@ export class Tree {
    * @param dataItem The single data item, already added to the tree, to get the proof for.
    * @return The Merkle inclusion proof value.
    */
-  public proof(dataItem: Uint8Array): Uint8Array {
+  public proof(dataItem: Uint8Array): ProofBinary {
     for (let i = 0; i < this.data.length; i++) {
       if (compare(this.data[i], dataItem)) {
         debugLog(
@@ -315,7 +348,7 @@ export class Tree {
       }
     }
 
-    throw new Error('data node not found')
+    throw new Error('proof dataItem not found')
   }
 
   /**
@@ -325,7 +358,9 @@ export class Tree {
    */
   public proofHex(dataItem: Uint8Array): ProofHex {
     const proof: Uint8Array = this.proof(dataItem)
-    return proofToHex(proof)
+    const proofHex = encodeHex(proof)
+    assert(proofHex, ProofHexStruct)
+    return proofHex
   }
 
   /**
@@ -335,7 +370,24 @@ export class Tree {
    */
   public proofObject(dataItem: Uint8Array): ProofObject {
     const proof: Uint8Array = this.proof(dataItem)
-    return proofToObject(proof, this.hashFuncOutLen)
+
+    const layerHashLengthPlusOne: number = this.hashLen + 1
+    const proofLength: number = proof.byteLength
+    const proofLayers: ProofObjectLayer[] = []
+
+    for (let i = 0; i < proofLength; i += layerHashLengthPlusOne) {
+      const order: Uint8Array = proof.subarray(i, i + 1)
+      const hash: Uint8Array = proof.subarray(i + 1, i + layerHashLengthPlusOne)
+      proofLayers.push([parseInt(encodeHex(order), 16), encodeHex(hash)])
+    }
+
+    const proofObj: ProofObject = {
+      v: 1,
+      h: this.hashName,
+      p: proofLayers,
+    }
+    assert(proofObj, ProofObjectStruct)
+    return proofObj
   }
 
   /**
@@ -343,34 +395,81 @@ export class Tree {
    * @param root The Merkle `root` value of a tree.
    * @param proof The Merkle inclusion `proof` that allows traversal from the `data` to the `root`. The `proof` can be provided in any of the supported encodings.
    * @param data A single data item, exactly as added to the original tree, that the `proof` was generated for.
-   * @param hashFunction The hash function, must be the same as that used to create the tree originally.
+   * @param hashFunction The hash function, must be the same as that used to create the tree originally. Optional if providing a proof Object which has a named proof.
    * @return A boolean to indicate verification success or failure.
    */
   public static verify(
-    root: Uint8Array,
-    proof: Uint8Array | ProofHex | ProofObject,
+    root: MerkleRoot,
+    proof: ProofBinary | ProofHex | ProofObject,
     data: Uint8Array,
-    hashFunction: TreeHashFunction,
+    hashFunction?: TreeHashFunction,
   ): boolean {
-    if (is(proof, ProofHexStruct)) {
+    // BINARY
+    if (is(proof, ProofBinaryStruct)) {
+      assert(hashFunction, TreeHashFunctionStruct)
+      return verify(root, proof, data, hashFunction)
+    } else if (is(proof, ProofHexStruct)) {
+      assert(hashFunction, TreeHashFunctionStruct)
       return verify(root, hexToProof(proof), data, hashFunction)
     } else if (is(proof, ProofObjectStruct)) {
-      return verify(root, objectToProof(proof), data, hashFunction)
+      let selectedHashFunction: TreeHashFunction
+
+      if (hashFunction) {
+        assert(hashFunction, TreeHashFunctionStruct)
+        // Prefer to use the provided hash function
+        // if it is available. This will override
+        // the hash function named in the proof.
+        selectedHashFunction = hashFunction
+      } else {
+        // Or use the hash function named in the proof
+        switch (proof.h) {
+          case 'sha224':
+            selectedHashFunction = sha224
+            break
+          case 'sha256':
+            selectedHashFunction = sha256
+            break
+          case 'sha384':
+            selectedHashFunction = sha384
+            break
+          case 'sha512':
+            selectedHashFunction = sha512
+            break
+          case 'sha512_256':
+            selectedHashFunction = sha512_256
+            break
+          case 'sha3_224':
+            selectedHashFunction = sha3_224
+            break
+          case 'sha3_256':
+            selectedHashFunction = sha3_256
+            break
+          case 'sha3_384':
+            selectedHashFunction = sha3_384
+            break
+          case 'sha3_512':
+            selectedHashFunction = sha3_512
+            break
+          default:
+            throw new Error(`invalid hash function: ${proof.h}`)
+        }
+      }
+
+      assert(selectedHashFunction, TreeHashFunctionStruct)
+      return verify(root, objectToProof(proof), data, selectedHashFunction)
     } else {
-      return verify(root, proof, data, hashFunction)
+      throw new Error('invalid or corrupted proof provided')
     }
   }
 
   /**
    * Constructs the internal Merkle tree structure recursively from the `data` provided at Tree creation time. Appends Tree layers and the Merkle root to the `tree` property.
    * @param data An array of data items.
-   * @param hashFunction The hash function to use for Tree construction.
-   * @param leaves Determine if building leaf nodes or inner nodes. '0x00' prefix for leaf nodes, '0x01' prefix for inner nodes.
+   * @param leaves Determine if building leaf nodes or inner nodes. '0x00' prefix is applied for leaf nodes, '0x01' prefix for inner nodes.
    * @hidden
    */
   private build(
     data: Uint8Array[],
-    hashFunction: TreeHashFunction,
     leaves = true, // process leaves first (default) which get a different prefix
   ): void {
     this.tree.push(data)
@@ -394,10 +493,10 @@ export class Tree {
       const d1 = data[i]
       // Right, or duplicate left if an unbalanced tree
       const d2 = data[i + 1] || d1
-      newLevel.push(hashFunction(concat(prefix, concat(d1, d2))))
+      newLevel.push(this.hashFunction(concat(prefix, concat(d1, d2))))
     }
 
-    this.build(newLevel, hashFunction, false)
+    this.build(newLevel, false)
   }
 
   /**
@@ -406,7 +505,7 @@ export class Tree {
    * @return A proof.
    * @hidden
    */
-  private proofForIndex(i: number): Uint8Array {
+  private proofForIndex(i: number): ProofBinary {
     const height: number = this.height()
 
     let level = 0
@@ -441,7 +540,6 @@ export class Tree {
 
       // and each byte of the hash of the element it pairs with.
       for (const byte of otherElement) {
-        debugLog(`proofForIndex otherElement byte: ${byte}`, this.debug)
         proof.push(byte)
       }
 
@@ -459,6 +557,8 @@ export class Tree {
 
     debugLog(`proofForIndex proof data : ${JSON.stringify(proof)}`, this.debug)
 
-    return new Uint8Array(proof)
+    const proofUint8Array = new Uint8Array(proof)
+    assert(proofUint8Array, ProofBinaryStruct)
+    return proofUint8Array
   }
 }

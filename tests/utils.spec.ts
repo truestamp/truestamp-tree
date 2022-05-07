@@ -1,8 +1,8 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto';
-import { encodeHex, decodeHex, powerOfTwo, concat, compare, validateHashFunction, sha224, sha256, sha384, sha512, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512 } from '../src/modules/utils';
-import { treeDataHasExpectedLength } from '../src/modules/tree';
+import { encodeHex, decodeHex, powerOfTwo, concat, compare, sha224, sha256, sha384, sha512, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512 } from '../src/modules/utils';
+import { Tree, treeDataHasExpectedLength } from '../src/modules/tree';
 import { sha1 as sha1Node, sha256 as sha256Node, getRandomBytes } from './helpers';
 
 describe('encodeHex', () => {
@@ -59,55 +59,6 @@ describe('compare', () => {
   });
 });
 
-describe('validateHashFunction', () => {
-  test('should return a number if valid', () => {
-    const u1 = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
-
-    expect(validateHashFunction(sha1Node)).toBe(20);
-    expect(validateHashFunction(sha256Node)).toBe(32);
-  });
-
-  test('should throw if function is not a function', () => {
-    const t = () => {
-      // @ts-ignore
-      validateHashFunction('foo');
-    }
-
-    expect(t).toThrow(Error)
-    expect(t).toThrow("hashFunction must be a function")
-
-  });
-
-  test('should throw if function return is < 20 bytes', () => {
-    const shortFunc = (d: Uint8Array): Uint8Array => {
-      return new Uint8Array(randomBytes(19))
-    }
-
-    const t = () => {
-      validateHashFunction(shortFunc);
-    }
-
-    expect(t).toThrow(Error)
-    expect(t).toThrow("hash function must return a non-empty Uint8Array between 20 and 64 bytes long")
-
-  });
-
-  test('should throw if function return is > 64 bytes', () => {
-    const longFunc = (d: Uint8Array): Uint8Array => {
-      return new Uint8Array(randomBytes(65))
-    }
-
-    const t = () => {
-      validateHashFunction(longFunc);
-    }
-
-    expect(t).toThrow(Error)
-    expect(t).toThrow("hash function must return a non-empty Uint8Array between 20 and 64 bytes long")
-
-  });
-
-});
-
 describe('treeDataHasExpectedLength', () => {
   test('should return nothing if run cleanly', () => {
     const data = [new Uint8Array(randomBytes(32)), new Uint8Array(randomBytes(32)), new Uint8Array(randomBytes(32)), new Uint8Array(randomBytes(32))]
@@ -139,39 +90,84 @@ describe('hash functions', () => {
     }
   });
 
-  test('sha224 should return expected byte length', () => {
-    expect(sha224(new Uint8Array(randomBytes(32))).length).toBe(28);
+  test('sha224 should function roundtrip', () => {
+    const byteLen = 28
+    const func = sha224
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha256 should return expected byte length', () => {
-    expect(sha256(new Uint8Array(randomBytes(32))).length).toBe(32);
+    const byteLen = 32
+    const func = sha256
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha384 should return expected byte length', () => {
-    expect(sha384(new Uint8Array(randomBytes(32))).length).toBe(48);
+    const byteLen = 48
+    const func = sha384
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha512 should return expected byte length', () => {
-    expect(sha512(new Uint8Array(randomBytes(32))).length).toBe(64);
+    const byteLen = 64
+    const func = sha512
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha512_256 should return expected byte length', () => {
-    expect(sha512_256(new Uint8Array(randomBytes(32))).length).toBe(32);
+    const byteLen = 32
+    const func = sha512_256
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha3_224 should return expected byte length', () => {
-    expect(sha3_224(new Uint8Array(randomBytes(32))).length).toBe(28);
+    const byteLen = 28
+    const func = sha3_224
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha3_256 should return expected byte length', () => {
-    expect(sha3_256(new Uint8Array(randomBytes(32))).length).toBe(32);
+    const byteLen = 32
+    const func = sha3_256
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha3_384 should return expected byte length', () => {
-    expect(sha3_384(new Uint8Array(randomBytes(32))).length).toBe(48);
+    const byteLen = 48
+    const func = sha3_384
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 
   test('sha3_512 should return expected byte length', () => {
-    expect(sha3_512(new Uint8Array(randomBytes(32))).length).toBe(64);
+    const byteLen = 64
+    const func = sha3_512
+    const data = [new Uint8Array(randomBytes(byteLen)), new Uint8Array(randomBytes(byteLen))]
+    expect(func(data[1]).length).toBe(byteLen);
+    const tree = new Tree(data, func);
+    expect(Tree.verify(tree.root(), tree.proofObject(data[1]), data[1])).toBeTruthy();
   });
 });

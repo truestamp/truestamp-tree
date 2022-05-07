@@ -1,3 +1,5 @@
+// Copyright © 2020-2022 Truestamp Inc. All rights reserved.
+
 /**
  * 0x00 byte prefix applied to leaf nodes
  * @ignore

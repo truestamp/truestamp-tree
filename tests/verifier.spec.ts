@@ -1,7 +1,7 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { randomBytes } from 'crypto'
-import { Tree, verify } from '../src/modules/tree'
+import { Tree } from '../src/modules/tree'
 import { sha1, sha256, sliceElement } from './helpers'
 
 describe('verify', () => {
@@ -15,7 +15,7 @@ describe('verify', () => {
 
     for (const d of data) {
       expect(
-        verify(tree.root(), tree.proof(d), d, sha1),
+        Tree.verify(tree.root(), tree.proof(d), d, sha1),
       ).toBeTruthy()
     }
   })
@@ -30,7 +30,7 @@ describe('verify', () => {
 
     for (const d of data) {
       expect(
-        verify(tree.root(), tree.proof(d), d, sha1),
+        Tree.verify(tree.root(), tree.proof(d), d, sha1),
       ).toBeTruthy()
     }
   })
@@ -45,7 +45,7 @@ describe('verify', () => {
 
     for (const d of data) {
       expect(
-        verify(tree.root(), tree.proof(d), d, sha256),
+        Tree.verify(tree.root(), tree.proof(d), d, sha256),
       ).toBeTruthy()
     }
   })
@@ -60,7 +60,7 @@ describe('verify', () => {
 
     for (const d of data) {
       expect(
-        verify(tree.root(), tree.proof(d), d, sha256),
+        Tree.verify(tree.root(), tree.proof(d), d, sha256),
       ).toBeTruthy()
     }
   })
@@ -75,7 +75,7 @@ describe('verify', () => {
 
     for (const d of data) {
       expect(
-        verify(tree.root(), sliceElement(tree.proof(d), 64), d, sha256),
+        Tree.verify(tree.root(), sliceElement(tree.proof(d), 64), d, sha256),
       ).toBeFalsy()
     }
   })

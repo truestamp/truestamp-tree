@@ -1,23 +1,20 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-export {
-  Tree,
-  proofToHex,
-  hexToProof,
-  proofToObject,
-  objectToProof,
-} from './modules/tree'
+export { Tree } from './modules/tree'
 
 export {
+  ProofBinary,
+  ProofBinaryStruct,
   ProofHex,
   ProofHexStruct,
-  ProofLayer,
-  ProofLayerStruct,
+  ProofObjectLayer,
+  ProofObjectLayerStruct,
   ProofObject,
   ProofObjectStruct,
   TreeData,
   TreeDataStruct,
   TreeHashFunction,
+  TreeHashFunctionStruct,
   TreeOptions,
   TreeOptionsStruct,
   TreeTree,
@@ -39,7 +36,4 @@ export {
   sha3_256,
   sha3_384,
   sha3_512,
-  validateHashFunction,
 } from './modules/utils'
-
-export { LEAF_NODE_PREFIX, INNER_NODE_PREFIX } from './modules/constants'

@@ -2,8 +2,8 @@
 
 import { randomBytes } from 'crypto'
 import { Tree } from '../src/modules/tree'
-import { decodeHex } from '../src/modules/utils'
-import { sha1, sha256, sliceElement } from './helpers'
+import { decodeHex, sha256, sha512 } from '../src/modules/utils'
+import { sliceElement, sha1 } from './helpers'
 import { ProofHexStruct, ProofObjectStruct } from '../src/modules/types'
 import { assert } from 'superstruct'
 
@@ -171,16 +171,7 @@ describe('Tree', () => {
 describe('with {debug: true}', () => {
   test('should console.debug() output with a data array with length 2', () => {
     const data = [
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347'),
-      decodeHex('5c2777303a38045937c580c875321ec478cadf77672e3d60247d6b3258a34347')
+      randomBytes(32), randomBytes(32),
     ]
     const tree = new Tree(data, sha256, { debug: true })
 
@@ -258,7 +249,7 @@ describe('Tree.proof', () => {
     }
 
     expect(t).toThrow(Error)
-    expect(t).toThrow('data node not found')
+    expect(t).toThrow('proof dataItem not found')
   })
 
   test('should return a verifiable proof with data length == 2', () => {
@@ -303,7 +294,7 @@ describe('Tree.proofHex', () => {
     }
 
     expect(t).toThrow(Error)
-    expect(t).toThrow('data node not found')
+    expect(t).toThrow('proof dataItem not found')
   })
 
   test('should return a verifiable proof with data length == 2', () => {
@@ -348,7 +339,7 @@ describe('Tree.proofObject', () => {
     }
 
     expect(t).toThrow(Error)
-    expect(t).toThrow('data node not found')
+    expect(t).toThrow('proof dataItem not found')
   })
 
   test('should return a verifiable proof with data length == 2', () => {
@@ -379,7 +370,48 @@ describe('Tree.proofObject', () => {
 })
 
 describe('Tree.verify', () => {
+
+  test('verification should throw if the Merkle root is not a Uint8Array', () => {
+    const data = [randomBytes(32), randomBytes(32)]
+
+    const tree = new Tree(data, sha256)
+    const proof = tree.proof(data[1])
+
+    // The same, but with a good root should work.
+    expect(Tree.verify(tree.root(), proof, data[1], sha256)).toBeTruthy()
+
+    // Construct a bad root.
+    const badRoot = new Uint8Array([])
+
+    const t = () => {
+      Tree.verify(badRoot, proof, data[1], sha256)
+    }
+
+    expect(t).toThrow(Error)
+    expect(t).toThrow('Expected a value of type `MerkleRoot`, but received: ``')
+  })
+
+
   describe('Uint8Array proof', () => {
+    test('verification should throw if proof is way too large', () => {
+      const badProof = new Uint8Array(randomBytes(1024 * 1024 + 1))
+      const t = () => {
+        Tree.verify(new Uint8Array(randomBytes(32)), badProof, new Uint8Array([0]), undefined)
+      }
+
+      expect(t).toThrow(Error)
+      expect(t).toThrow('invalid or corrupted proof provided')
+    })
+
+    test('verification should throw if no hashFunction is provided', () => {
+      const t = () => {
+        Tree.verify(new Uint8Array(randomBytes(32)), new Uint8Array([0]), new Uint8Array([0]), undefined)
+      }
+
+      expect(t).toThrow(Error)
+      expect(t).toThrow('Expected a value of type `HashFunction`, but received: `undefined`')
+    })
+
     test('should not verify if any proof hashes are of the wrong length', () => {
       const data: Buffer[] = []
       for (let i = 0; i < 16; ++i) {
@@ -433,6 +465,15 @@ describe('Tree.verify', () => {
 
   describe('Hex proof', () => {
 
+    test('verification should throw if no hashFunction is provided', () => {
+      const t = () => {
+        Tree.verify(new Uint8Array(randomBytes(32)), 'deadbeefdeadbeefdeadbeefdeadbeef', new Uint8Array([0]), undefined)
+      }
+
+      expect(t).toThrow(Error)
+      expect(t).toThrow('Expected a value of type `HashFunction`, but received: `undefined`')
+    })
+
     test('should not verify if any proof hashes are of the wrong length', () => {
       const data: Buffer[] = []
       for (let i = 0; i < 4; ++i) {
@@ -460,18 +501,27 @@ describe('Tree.verify', () => {
 
       const tree = new Tree(data, sha256)
 
-      const proof = tree.proofHex(data[1])
-      expect(typeof proof).toBe('string')
-      expect(assert(proof, ProofHexStruct)).toBeUndefined()
+      const proofHex = tree.proofHex(data[1])
+      expect(typeof proofHex).toBe('string')
+      expect(assert(proofHex, ProofHexStruct)).toBeUndefined()
       expect(
-        Tree.verify(tree.root(), proof, data[1], sha256),
+        Tree.verify(tree.root(), proofHex, data[1], sha256),
       ).toBeTruthy()
     })
 
   })
 
   describe('Object proof', () => {
-    test('should not verify if any proof hashes are of the wrong length', () => {
+    test('verification should throw if unknown hashFunction is provided in object and undefined is provided as hashFunction arg', () => {
+      const t = () => {
+        Tree.verify(new Uint8Array(randomBytes(32)), { v: 1, h: 'foo', p: [[0, 'deadbeefdeadbeefdeadbeefdeadbeef']] }, new Uint8Array([0]), undefined)
+      }
+
+      expect(t).toThrow(Error)
+      expect(t).toThrow('invalid or corrupted proof provided')
+    })
+
+    test('verification should throw if any proof object layer hashes are of the wrong length', () => {
       const data: Buffer[] = []
       for (let i = 0; i < 4; ++i) {
         data.push(randomBytes(32))
@@ -483,13 +533,16 @@ describe('Tree.verify', () => {
       // manipulate the proof
       proof.p[1] = [0, 'deadbeef']
 
-      expect(
-        Tree.verify(tree.root(), proof, data[1], sha256),
-      ).toBeFalsy()
+      const t = () => {
+        Tree.verify(tree.root(), proof, data[1], sha256)
+      }
+
+      expect(t).toThrow(Error)
+      expect(t).toThrow('invalid or corrupted proof provided')
     })
   })
 
-  test('should verify', () => {
+  test('should verify with hash function provided', () => {
     const data: Buffer[] = []
     for (let i = 0; i < 4; ++i) {
       data.push(randomBytes(32))
@@ -497,10 +550,25 @@ describe('Tree.verify', () => {
 
     const tree = new Tree(data, sha256)
 
-    const proof = tree.proofObject(data[1])
-    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
+    const objProof = tree.proofObject(data[1])
+    expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     expect(
-      Tree.verify(tree.root(), proof, data[1], sha256),
+      Tree.verify(tree.root(), objProof, data[1], sha256),
+    ).toBeTruthy()
+  })
+
+  test('should verify without hash function provided, using named function in proof', () => {
+    const data: Buffer[] = []
+    for (let i = 0; i < 4; ++i) {
+      data.push(randomBytes(32))
+    }
+
+    const tree = new Tree(data, sha256)
+
+    const objProof = tree.proofObject(data[1])
+    expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
+    expect(
+      Tree.verify(tree.root(), objProof, data[1]),
     ).toBeTruthy()
   })
 
