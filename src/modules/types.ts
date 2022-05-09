@@ -13,7 +13,6 @@ import {
   size,
   string,
   tuple,
-  union,
   number,
   Infer,
 } from 'superstruct'
@@ -102,8 +101,8 @@ export type HashFunction = Infer<typeof HashFunctionStruct>
 /**
  * The type that defines the expected shape of user provided hash function names.
  * */
-export const HashFunctionNameStruct = define<string>(
-  'HashFunction',
+export const TreeHashFunctionNameStruct = define<string>(
+  'TreeHashFunctionName',
   (value): boolean => {
     if (typeof value !== 'string') {
       return false
@@ -116,20 +115,7 @@ export const HashFunctionNameStruct = define<string>(
 /**
  * The inferred type that defines the shape of known hash function names.
  * */
-export type HashFunctionName = Infer<typeof HashFunctionNameStruct>
-
-/**
- * The struct that defines the shape and expected output of a user provided hash function.
- * */
-export const TreeHashNameOrFunctionStruct = union([
-  HashFunctionStruct,
-  HashFunctionNameStruct,
-])
-
-/**
- * The inferred type that defines the shape and expected output of a user provided hash function.
- * */
-export type TreeHashNameOrFunction = Infer<typeof TreeHashNameOrFunctionStruct>
+export type TreeHashFunctionName = Infer<typeof TreeHashFunctionNameStruct>
 
 /**
  * The struct that defines the shape of user provided tree data.

@@ -5,8 +5,8 @@ import { assert, is } from 'superstruct'
 import {
   HashFunction,
   HashFunctionStruct,
-  HashFunctionName,
-  HashFunctionNameStruct,
+  TreeHashFunctionName,
+  TreeHashFunctionNameStruct,
   MerkleRoot,
   MerkleRootStruct,
   ProofBinary,
@@ -18,10 +18,8 @@ import {
   ProofObjectStruct,
   TreeData,
   TreeDataStruct,
-  TreeHashNameOrFunction,
   TreeOptionsStruct,
   TreeTree,
-  TreeHashNameOrFunctionStruct,
 } from './types'
 
 import {
@@ -42,6 +40,7 @@ import {
 } from './utils'
 
 import { INNER_NODE_PREFIX, LEAF_NODE_PREFIX } from './constants'
+import { endianness } from 'os'
 
 /**
  * Decode a Hex proof to a Uint8Array.
@@ -100,7 +99,7 @@ function verify(
   root: MerkleRoot,
   proof: ProofBinary,
   data: Uint8Array,
-  hashFunction: TreeHashNameOrFunction,
+  hashFunction: HashFunction,
 ): boolean {
   assert(root, MerkleRootStruct)
   assert(proof, ProofBinaryStruct)
@@ -196,66 +195,51 @@ function debugLog(message: any, enabled: boolean): void {
   }
 }
 
-export function resolveHashNameOrFunction(
-  hashNameOrFunction: TreeHashNameOrFunction,
-): {
+export function resolveHashName(hashName: TreeHashFunctionName): {
   name: string
   length: number
   fn: HashFunction
 } {
-  if (is(hashNameOrFunction, HashFunctionNameStruct)) {
-    // Or use the hash function named in the proof
-    let foundHashFunction
-    switch (hashNameOrFunction) {
-      case 'sha224':
-        foundHashFunction = sha224
-        break
-      case 'sha256':
-        foundHashFunction = sha256
-        break
-      case 'sha384':
-        foundHashFunction = sha384
-        break
-      case 'sha512':
-        foundHashFunction = sha512
-        break
-      case 'sha512_256':
-        foundHashFunction = sha512_256
-        break
-      case 'sha3_224':
-        foundHashFunction = sha3_224
-        break
-      case 'sha3_256':
-        foundHashFunction = sha3_256
-        break
-      case 'sha3_384':
-        foundHashFunction = sha3_384
-        break
-      case 'sha3_512':
-        foundHashFunction = sha3_512
-        break
-      default:
-        throw new Error(
-          `invalid hash function name string: ${hashNameOrFunction}`,
-        )
-    }
+  assert(hashName, TreeHashFunctionNameStruct)
 
-    return {
-      name: hashNameOrFunction,
-      length: foundHashFunction(new Uint8Array([0])).length,
-      fn: foundHashFunction,
-    }
+  let foundHashFunction
+  switch (hashName) {
+    case 'sha224':
+      foundHashFunction = sha224
+      break
+    case 'sha256':
+      foundHashFunction = sha256
+      break
+    case 'sha384':
+      foundHashFunction = sha384
+      break
+    case 'sha512':
+      foundHashFunction = sha512
+      break
+    case 'sha512_256':
+      foundHashFunction = sha512_256
+      break
+    case 'sha3_224':
+      foundHashFunction = sha3_224
+      break
+    case 'sha3_256':
+      foundHashFunction = sha3_256
+      break
+    case 'sha3_384':
+      foundHashFunction = sha3_384
+      break
+    case 'sha3_512':
+      foundHashFunction = sha3_512
+      break
+    default:
+      throw new Error(`unknown hash function name: ${hashName}`)
   }
 
-  if (is(hashNameOrFunction, HashFunctionStruct)) {
-    return {
-      name: 'unknown',
-      length: hashNameOrFunction(new Uint8Array([0])).length,
-      fn: hashNameOrFunction,
-    }
+  return {
+    name: hashName,
+    length: foundHashFunction(new Uint8Array([0])).length,
+    fn: foundHashFunction,
   }
-
-  throw new Error('unknown hash name or function')
 }
 
 /** Class representing a Merkle tree. */
@@ -305,7 +289,7 @@ export class Tree {
   /**
    * Create a new Merkle tree.
    * @param data The array of Uint8Array data values that the tree will be constructed from.
-   * @param hashNameOrFunction The hash function that will be used to create the tree. It must take a single Uint8Array argument and return a Uint8Array that is between 20 and 64 bytes in length.
+   * @param hashName The hash function that will be used to create the tree. Defaults to 'sha256'.
    * @param options The options to use when creating the tree.
    *
    * @example Create a new Merkle tree with a SHA-256 hash function, and a binary proof.
@@ -342,17 +326,17 @@ export class Tree {
   // eslint-disable-next-line prettier/prettier
   constructor (
     data: TreeData,
-    hashNameOrFunction: TreeHashNameOrFunction,
+    hashName: TreeHashFunctionName = 'sha256',
     options: { requireBalanced?: boolean; debug?: boolean } = {
       requireBalanced: false,
       debug: false,
     },
   ) {
     assert(data, TreeDataStruct)
-    assert(hashNameOrFunction, TreeHashNameOrFunctionStruct)
+    assert(hashName, TreeHashFunctionNameStruct)
     assert(options, TreeOptionsStruct)
 
-    const resolvedHash = resolveHashNameOrFunction(hashNameOrFunction)
+    const resolvedHash = resolveHashName(hashName)
     this.hashName = resolvedHash.name
     this.hashLength = resolvedHash.length
     this.hashFunction = resolvedHash.fn
@@ -462,36 +446,29 @@ export class Tree {
    * @param root The Merkle `root` value of a tree.
    * @param proof The Merkle inclusion `proof` that allows traversal from the `data` to the `root`. The `proof` can be provided in any of the supported encodings.
    * @param data A single data item, exactly as added to the original tree, that the `proof` was generated for.
-   * @param hashNameOrFunction The hash function, must be the same as that used to create the tree originally. Optional if providing a proof Object which has a named proof.
+   * @param hashName The hash function name, must be the same as that used to create the tree originally. Optional if providing an object encoded proof which already has the hash function name embedded.
    * @return A boolean to indicate verification success or failure.
    */
   public static verify(
     root: MerkleRoot,
     proof: ProofBinary | ProofHex | ProofObject,
     data: Uint8Array,
-    hashNameOrFunction?: TreeHashNameOrFunction,
+    hashName?: TreeHashFunctionName,
   ): boolean {
-    // BINARY
     if (is(proof, ProofBinaryStruct)) {
-      assert(hashNameOrFunction, HashFunctionStruct)
-      return verify(root, proof, data, hashNameOrFunction)
+      assert(hashName, TreeHashFunctionNameStruct)
+      const resolvedHash = resolveHashName(hashName)
+      return verify(root, proof, data, resolvedHash.fn)
     } else if (is(proof, ProofHexStruct)) {
-      assert(hashNameOrFunction, HashFunctionStruct)
-      return verify(root, hexToProof(proof), data, hashNameOrFunction)
+      assert(hashName, TreeHashFunctionNameStruct)
+      const resolvedHash = resolveHashName(hashName)
+      return verify(root, hexToProof(proof), data, resolvedHash.fn)
     } else if (is(proof, ProofObjectStruct)) {
-      // If a valid function is provided as an arg, use it in preference
-      // to the hash name provided in the object.
-      if (is(hashNameOrFunction, HashFunctionStruct)) {
-        // use the provided function
-        return verify(root, objectToProof(proof), data, hashNameOrFunction)
-      } else {
-        // resolve the hash function from the object
-        const resolvedHash = resolveHashNameOrFunction(proof.h)
-        return verify(root, objectToProof(proof), data, resolvedHash.fn)
-      }
-    } else {
-      throw new Error('invalid or corrupted proof provided')
+      const resolvedHash = resolveHashName(proof.h)
+      return verify(root, objectToProof(proof), data, resolvedHash.fn)
     }
+
+    throw new Error('invalid or corrupted proof provided')
   }
 
   /**

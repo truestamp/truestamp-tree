@@ -6,15 +6,15 @@
 //   npm install
 //   npx ts-node index.ts
 
-const { Tree, encodeHex, sha256 } = require('../../dist/index.cjs')
+const { Tree, encodeHex, sha512_256 } = require('../../dist/index.cjs')
 
 const ARRAY_LENGTH = 1_000
 const rawData: number[] = Array.from(Array(ARRAY_LENGTH)).map(() => Math.floor(Math.random()))
-const data: Uint8Array[] = rawData.map((x) => { return sha256(new Uint8Array([x])) })
+const data: Uint8Array[] = rawData.map((x) => { return sha512_256(new Uint8Array([x])) })
 console.log('data.length\n', data.length)
 
-// Create a Merkle tree from the data and the hash function.
-const t = new Tree(data, 'sha256')
+// Create a Merkle tree from the data and the hash function name.
+const t = new Tree(data, 'sha512_256')
 
 // Extract the root hash from the tree.
 const r = t.root()
@@ -28,4 +28,4 @@ const p = t.proofObject(d)
 console.log('proof\n', p)
 
 // Verify the proof.
-console.log('verified?\n', Tree.verify(r, p, d)) // true or false
+console.log('verified?\n', Tree.verify(r, p, d, 'sha512_256')) // true or false

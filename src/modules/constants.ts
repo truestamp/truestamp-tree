@@ -13,7 +13,7 @@ export const LEAF_NODE_PREFIX: Uint8Array = new Uint8Array([0])
 export const INNER_NODE_PREFIX: Uint8Array = new Uint8Array([1])
 
 /**
- *  The names of the hash functions natively supported by the library.
+ *  The names of the built-in hash functions supported by the library.
  * @ignore
  * */
 export const HASH_FUNCTION_NAMES: string[] = [
@@ -26,5 +26,4 @@ export const HASH_FUNCTION_NAMES: string[] = [
   'sha3_256',
   'sha3_384',
   'sha3_512',
-  'unknown',
 ]

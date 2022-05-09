@@ -42,9 +42,9 @@ const rawData = Array.from(Array(ARRAY_LENGTH)).map(() => crypto.randomBytes(10)
 const data = rawData.map((x) => { return sha256(x) })
 console.timeEnd('data')
 
-// Construct a Merkle Tree from the data, providing a hash function name.
+// Construct a Merkle Tree from the data, hash function defaults to 'sha256'.
 console.time('merkle')
-const t = new Tree(data, 'sha256')
+const t = new Tree(data)
 console.timeEnd('merkle')
 
 // Inspect the Merkle root of the tree
@@ -71,7 +71,8 @@ console.timeEnd('proof')
 // * (r) the Merkle root of the original Tree,
 // * (p) the inclusion proof in one of the supported encodings
 // * (d) the data element to verify
+// * The hash function name, unless you are verifying an object encoded proof.
 //
 console.time('verify')
-console.log('verified?', Tree.verify(r, p, d)) // true or false
+console.log('verified?', Tree.verify(r, p, d, 'sha256')) // true or false
 console.timeEnd('verify')

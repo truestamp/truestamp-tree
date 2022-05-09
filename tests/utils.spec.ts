@@ -1,8 +1,8 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { encodeHex, decodeHex, powerOfTwo, concat, compare, sha224, sha256, sha384, sha512, sha512_256, sha3_224, sha3_256, sha3_384, sha3_512 } from '../src/modules/utils';
-import { Tree, treeDataHasExpectedLength, resolveHashNameOrFunction } from '../src/modules/tree';
-import { getRandomBytes, sha224_node, sha256_node, sha384_node, sha512_node } from './helpers';
+import { encodeHex, decodeHex, powerOfTwo, concat, compare } from '../src/modules/utils';
+import { Tree, resolveHashName } from '../src/modules/tree';
+import { getRandomData } from './helpers';
 
 describe('encodeHex', () => {
   test('should return the expected hex string', () => {
@@ -58,74 +58,7 @@ describe('compare', () => {
   });
 });
 
-describe('treeDataHasExpectedLength', () => {
-  test('should return nothing if run cleanly', () => {
-    const data = [new Uint8Array(getRandomBytes(32)), new Uint8Array(getRandomBytes(32)), new Uint8Array(getRandomBytes(32)), new Uint8Array(getRandomBytes(32))]
-    expect(treeDataHasExpectedLength(data, 32)).toBeUndefined();
-  });
-
-  test('should throw if any tree data has the wrong length', () => {
-    // one element is too short
-    const data = [new Uint8Array(getRandomBytes(20)), new Uint8Array(getRandomBytes(32)), new Uint8Array(getRandomBytes(32)), new Uint8Array(getRandomBytes(32))]
-
-    const t = () => {
-      treeDataHasExpectedLength(data, 32);
-    }
-
-    expect(t).toThrow(Error)
-    expect(t).toThrow("argument 'data' array contains items that don't match the hash function output length")
-
-  });
-
-});
-
 describe('hash functions', () => {
-  test('sha256 should return same value as Node.js crypto', () => {
-    const ARRAY_LENGTH = 1_000
-    const randomValues = Array.from(Array(ARRAY_LENGTH)).map(() => getRandomBytes(32))
-
-    for (const value of randomValues) {
-      expect(sha256(value)).toEqual(new Uint8Array(sha256_node(value).buffer));
-    }
-  });
-
-  test('Node.js hash functions should function roundtrip', () => {
-    const hashFunctions = [
-      sha224_node,
-      sha256_node,
-      sha384_node,
-      sha512_node,
-    ]
-
-    for (const hashFunction of hashFunctions) {
-      const hash = hashFunction(new Uint8Array(getRandomBytes(32)))
-      const data = [hash, hash]
-      const tree = new Tree(data, hashFunction);
-      expect(Tree.verify(tree.root(), tree.proofObject(data[0]), data[0], hashFunction)).toBeTruthy();
-    }
-  });
-
-  test('defined hash functions should function roundtrip', () => {
-    const hashFunctions = [
-      sha224,
-      sha256,
-      sha384,
-      sha512,
-      sha512_256,
-      sha3_224,
-      sha3_256,
-      sha3_384,
-      sha3_512
-    ]
-
-    for (const hashFunction of hashFunctions) {
-      const hash = hashFunction(new Uint8Array(getRandomBytes(32)))
-      const data = [hash, hash]
-      const tree = new Tree(data, hashFunction);
-      expect(Tree.verify(tree.root(), tree.proofObject(data[0]), data[0], hashFunction)).toBeTruthy();
-    }
-  });
-
   test('defined hash function string names should function roundtrip', () => {
     const hashFunctionNames = [
       'sha224',
@@ -140,10 +73,10 @@ describe('hash functions', () => {
     ]
 
     for (const hashFunctionName of hashFunctionNames) {
-      const resolvedHash = resolveHashNameOrFunction(hashFunctionName)
+      const resolvedHash = resolveHashName(hashFunctionName)
 
-      const hash = resolvedHash.fn(new Uint8Array(getRandomBytes(32).buffer))
-      const data = [hash, hash]
+      const data = getRandomData(8, resolvedHash.length)
+
       const tree = new Tree(data, resolvedHash.name);
       expect(Tree.verify(tree.root(), tree.proofObject(data[0]), data[0])).toBeTruthy();
     }
