@@ -7,7 +7,7 @@ internal operations are performed on binary data.
 
 The library provides several encodings for Merkle inclusion proofs, any one of which is acceptable for validation.
 
-This library doesn't hash original data or provide a hash function, you have to provide hashed (or arbitrary binary data of fixed size).
+This library doesn't hash original data, you have to provide hashed (or arbitrary binary data of fixed size).
 
 The library performs extensive compile time (TypeScript), and run time, validation of the incoming data to ensure correctness and safety at the possible expense of raw performance. That being said, it is still extremely fast, able to round-trip process a 1,000 item tree in about 20 milliseconds.
 
@@ -37,23 +37,17 @@ npm install @truestamp/tree
 Node.js:
 
 ```javascript
-import { Tree } from '@truestamp/tree';
-
-// Using the Node.js crypto SHA256 hash function for this example.
-// You can provide your own hash function.
-function sha256(data) {
-  return crypto.createHash('sha256').update(data).digest()
-}
+import { Tree, sha256 } from '@truestamp/tree';
 
 // Generate a sample 16 element hashed data array
 const rawData = Array.from(16).map(() => Math.random())
 const data = rawData.map((x) => { return sha256(x.toString()) })
 
 // Construct the Merkle tree
-const t = new Tree(data, sha256)
+const t = new Tree(data, 'sha256')
 
 // - or to reject unbalanced trees -
-// const t = new Tree(data, sha256, { requireBalanced: true })
+// const t = new Tree(data, 'sha256', { requireBalanced: true })
 
 // Get the root of the tree for later use
 const r = t.root()
@@ -70,7 +64,7 @@ const p = t.proofObject(d)
 // At any time in the future, verify your proof by providing
 // the stored root, the proof, and data. You need to use the same
 // hash function the tree was originally created with.
-console.log('verified?', Tree.verify(r, p, d, sha256)) // returns true or false
+console.log('verified?', Tree.verify(r, p, d)) // returns true or false
 ```
 
 A more detailed version of this example can be found in [examples/example.cjs].

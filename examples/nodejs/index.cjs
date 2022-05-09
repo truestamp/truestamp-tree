@@ -20,17 +20,17 @@
 // tested with 10 million data elements on a laptop which is
 // probably much larger than most real world data sets.
 
-const { Tree, encodeHex } = require('../../dist/index.cjs')
-
-// Native crypto library
+// Node.js native crypto library
 const crypto = require('crypto')
 
-// Setup a hash function for the tree
+const { Tree, encodeHex, sha256 } = require('../../dist/index.cjs')
+
+// Custom hash function Example
 // It must take a single argument of type Uint8Array and
-// should return a Uint8Array of the hash value.
-function sha256(data) {
-  return new Uint8Array(crypto.createHash('sha256').update(data).digest().buffer)
-}
+// return a Uint8Array of the hash value.
+// function sha256(data) {
+//   return new Uint8Array(crypto.createHash('sha256').update(data).digest().buffer)
+// }
 
 // Construct some sample data. In the real world this would be
 // the hash of the data you want to store in the Tree instead of
@@ -42,9 +42,9 @@ const rawData = Array.from(Array(ARRAY_LENGTH)).map(() => crypto.randomBytes(10)
 const data = rawData.map((x) => { return sha256(x) })
 console.timeEnd('data')
 
-// Construct a Merkle Tree from the data and hash function
+// Construct a Merkle Tree from the data, providing a hash function name.
 console.time('merkle')
-const t = new Tree(data, sha256)
+const t = new Tree(data, 'sha256')
 console.timeEnd('merkle')
 
 // Inspect the Merkle root of the tree
@@ -71,8 +71,7 @@ console.timeEnd('proof')
 // * (r) the Merkle root of the original Tree,
 // * (p) the inclusion proof in one of the supported encodings
 // * (d) the data element to verify
-// * the hash function used to compute the original Merkle tree
 //
 console.time('verify')
-console.log('verified?', Tree.verify(r, p, d, sha256)) // true or false
+console.log('verified?', Tree.verify(r, p, d)) // true or false
 console.timeEnd('verify')

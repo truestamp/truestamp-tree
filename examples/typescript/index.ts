@@ -14,7 +14,7 @@ const data: Uint8Array[] = rawData.map((x) => { return sha256(new Uint8Array([x]
 console.log('data.length\n', data.length)
 
 // Create a Merkle tree from the data and the hash function.
-const t = new Tree(data, sha256)
+const t = new Tree(data, 'sha256')
 
 // Extract the root hash from the tree.
 const r = t.root()
@@ -28,4 +28,4 @@ const p = t.proofObject(d)
 console.log('proof\n', p)
 
 // Verify the proof.
-console.log('verified?\n', Tree.verify(r, p, d, sha256)) // true or false
+console.log('verified?\n', Tree.verify(r, p, d)) // true or false

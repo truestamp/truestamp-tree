@@ -310,29 +310,29 @@ export class Tree {
    *
    * @example Create a new Merkle tree with a SHA-256 hash function, and a binary proof.
    * ```javascript
-   * import { Tree, sha256 } from '@truestamp/tree'
+   * import { Tree } from '@truestamp/tree'
    * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
-   * const tree = new Tree(data, sha256)
+   * const tree = new Tree(data, 'sha256')
    * const root = tree.root()
    * const proof = tree.proof(data[0])
-   * const verified = tree.verify(root, proof, data[0], sha256)
+   * const verified = tree.verify(root, proof, data[0], 'sha256')
    * ```
    *
    * @example Create a new Merkle tree with a SHA-256 hash function, and a hex proof.
    * ```javascript
-   * import { Tree, sha256 } from '@truestamp/tree'
+   * import { Tree } from '@truestamp/tree'
    * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
-   * const tree = new Tree(data, sha256)
+   * const tree = new Tree(data, 'sha256')
    * const root = tree.root()
    * const proof = tree.proofHex(data[0])
-   * const verified = tree.verify(root, proof, data[0], sha256)
+   * const verified = tree.verify(root, proof, data[0], 'sha256')
    * ```
    *
    * @example Create a new Merkle tree with a SHA-256 hash function, and an object proof.
    * ```javascript
-   * import { Tree, sha256 } from '@truestamp/tree'
+   * import { Tree } from '@truestamp/tree'
    * const data = [new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])]
-   * const tree = new Tree(data, sha256)
+   * const tree = new Tree(data, 'sha256')
    * const root = tree.root()
    * const proof = tree.proofObject(data[0])
    * const verified = tree.verify(root, proof, data[0])
