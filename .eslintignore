@@ -4,4 +4,4 @@ tests
 jest.config.mjs
 examples/**/*.cjs
 examples/**/*.ts
-perf.js
+perf.cjs
