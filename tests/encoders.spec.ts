@@ -1,16 +1,16 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { randomBytes } from 'crypto'
 import { Tree } from '../src/modules/tree'
 import { ProofHexStruct, ProofObject, ProofObjectStruct } from '../src/modules/types'
 import { encodeHex, sha256, sha512 } from '../src/modules/utils'
+import { getRandomBytes } from './helpers'
 import { assert } from 'superstruct'
 
 describe('proofToHex and hexToProof roundtrip', () => {
   test('should encode/decode verifiable sha256 hex proofs', () => {
-    const data: Buffer[] = []
+    const data: Uint8Array[] = []
     for (let i = 0; i < 16; i++) {
-      data.push(randomBytes(32))
+      data.push(getRandomBytes(32))
     }
 
     const tree = new Tree(data, sha256)
@@ -26,9 +26,9 @@ describe('proofToHex and hexToProof roundtrip', () => {
   })
 
   test('should encode/decode verifiable sha512 hex proofs', () => {
-    const data: Buffer[] = []
+    const data: Uint8Array[] = []
     for (let i = 0; i < 16; i++) {
-      data.push(randomBytes(64))
+      data.push(getRandomBytes(64))
     }
 
     const tree = new Tree(data, sha512)
@@ -46,16 +46,16 @@ describe('proofToHex and hexToProof roundtrip', () => {
 
 describe('proofToObject and objectToProof roundtrip', () => {
   test('should throw if the any proof hashes are of different length', () => {
-    const data: Buffer[] = []
+    const data: Uint8Array[] = []
     for (let i = 0; i < 10; ++i) {
-      data.push(randomBytes(32))
+      data.push(getRandomBytes(32))
     }
 
-    const tree = new Tree(data, sha256)
+    const tree = new Tree(data, 'sha256')
     const objProof = tree.proofObject(data[4])
 
     // manipulate the proof
-    objProof.p[2] = [0, encodeHex(randomBytes(20))] // change the hash length
+    objProof.p[2] = [0, encodeHex(getRandomBytes(20))] // change the hash length
 
     const t = () => {
       Tree.verify(tree.root(), objProof, data[4], sha256)
@@ -66,12 +66,12 @@ describe('proofToObject and objectToProof roundtrip', () => {
   })
 
   test('should encode/decode verifiable sha256 object proofs', () => {
-    const data: Buffer[] = []
+    const data: Uint8Array[] = []
     for (let i = 0; i < 16; i++) {
-      data.push(randomBytes(32))
+      data.push(getRandomBytes(32))
     }
 
-    const tree = new Tree(data, sha256)
+    const tree = new Tree(data, 'sha256')
 
     // get the proof for the data at the chosen index
     for (let i = 0; i < data.length; i++) {
@@ -83,12 +83,12 @@ describe('proofToObject and objectToProof roundtrip', () => {
   })
 
   test('should encode/decode verifiable sha512 object proofs', () => {
-    const data: Buffer[] = []
+    const data: Uint8Array[] = []
     for (let i = 0; i < 16; i++) {
-      data.push(randomBytes(64))
+      data.push(getRandomBytes(64))
     }
 
-    const tree = new Tree(data, sha512)
+    const tree = new Tree(data, 'sha512')
 
     // get the proof for the data at the chosen index
     for (let i = 0; i < data.length; i++) {

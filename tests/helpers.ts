@@ -1,17 +1,30 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { createHash, randomBytes } from 'crypto'
+import { createHash } from 'crypto'
+import { randomBytes } from '@stablelib/random'
 
-export function sha1(data: Uint8Array): Uint8Array {
-  return createHash('sha1').update(data).digest()
+export function sha1_node(data: Uint8Array): Uint8Array {
+  return new Uint8Array(createHash('sha1').update(data).digest().buffer)
 }
 
-export function sha256(data: Uint8Array): Uint8Array {
-  return createHash('sha256').update(data).digest()
+export function sha224_node(data: Uint8Array): Uint8Array {
+  return new Uint8Array(createHash('sha224').update(data).digest().buffer)
+}
+
+export function sha256_node(data: Uint8Array): Uint8Array {
+  return new Uint8Array(createHash('sha256').update(data).digest().buffer)
+}
+
+export function sha384_node(data: Uint8Array): Uint8Array {
+  return new Uint8Array(createHash('sha384').update(data).digest().buffer)
+}
+
+export function sha512_node(data: Uint8Array): Uint8Array {
+  return new Uint8Array(createHash('sha512').update(data).digest().buffer)
 }
 
 export function getRandomBytes(num: number): Uint8Array {
-  return new Uint8Array(randomBytes(num).buffer)
+  return randomBytes(num)
 }
 
 /**

@@ -66,6 +66,7 @@
     "@stablelib/bytes": "^1.0.1",
     "@stablelib/constant-time": "^1.0.1",
     "@stablelib/hex": "^1.0.1",
+    "@stablelib/random": "^1.0.1",
     "@stablelib/sha224": "^1.0.1",
     "@stablelib/sha256": "^1.0.1",
     "@stablelib/sha3": "^1.0.1",

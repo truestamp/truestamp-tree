@@ -13,6 +13,7 @@ import {
   size,
   string,
   tuple,
+  union,
   number,
   Infer,
 } from 'superstruct'
@@ -20,6 +21,7 @@ import {
 import isUint8Array from '@stdlib/assert/is-uint8array'
 import isFunction from '@stdlib/assert/is-function'
 
+import { HASH_FUNCTION_NAMES } from './constants'
 /**
  * A regular expression the defines the shape of a valid Hex string that represents 20-64 bytes.
  * SHA-1 -> 20 bytes
@@ -62,7 +64,7 @@ const ProofBinary = define<Uint8Array>('ProofBinary', (value): boolean => {
 /**
  * The type that defines the expected shape of user provided Tree hash function.
  * */
-const HashFunction = define<(input: Uint8Array) => Uint8Array>(
+export const HashFunctionStruct = define<(input: Uint8Array) => Uint8Array>(
   'HashFunction',
   (value): boolean => {
     if (isFunction(value)) {
@@ -93,6 +95,43 @@ const HashFunction = define<(input: Uint8Array) => Uint8Array>(
 )
 
 /**
+ * The inferred type that defines the shape of user provided hash function.
+ * */
+export type HashFunction = Infer<typeof HashFunctionStruct>
+
+/**
+ * The type that defines the expected shape of user provided hash function names.
+ * */
+export const HashFunctionNameStruct = define<string>(
+  'HashFunction',
+  (value): boolean => {
+    if (typeof value !== 'string') {
+      return false
+    }
+
+    return HASH_FUNCTION_NAMES.includes(value)
+  },
+)
+
+/**
+ * The inferred type that defines the shape of known hash function names.
+ * */
+export type HashFunctionName = Infer<typeof HashFunctionNameStruct>
+
+/**
+ * The struct that defines the shape and expected output of a user provided hash function.
+ * */
+export const TreeHashNameOrFunctionStruct = union([
+  HashFunctionStruct,
+  HashFunctionNameStruct,
+])
+
+/**
+ * The inferred type that defines the shape and expected output of a user provided hash function.
+ * */
+export type TreeHashNameOrFunction = Infer<typeof TreeHashNameOrFunctionStruct>
+
+/**
  * The struct that defines the shape of user provided tree data.
  * */
 export const TreeDataStruct = nonempty(array(instance(Uint8Array)))
@@ -101,16 +140,6 @@ export const TreeDataStruct = nonempty(array(instance(Uint8Array)))
  * The inferred type that defines the shape of user provided of tree data.
  * */
 export type TreeData = Infer<typeof TreeDataStruct>
-
-/**
- * The struct that defines the shape and expected output of a user provided hash function.
- * */
-export const TreeHashFunctionStruct = HashFunction
-
-/**
- * The inferred type that defines the shape and expected output of a user provided hash function.
- * */
-export type TreeHashFunction = Infer<typeof TreeHashFunctionStruct>
 
 /**
  * The struct that defines the shape of user provided tree configuration.
@@ -176,17 +205,7 @@ export type ProofObjectLayer = Infer<typeof ProofObjectLayerStruct>
  * */
 export const ProofObjectStruct = object({
   v: enums([1]),
-  h: enums([
-    'sha224',
-    'sha256',
-    'sha384',
-    'sha512',
-    'sha512_256',
-    'sha3_224',
-    'sha3_256',
-    'sha3_384',
-    'sha3_512',
-  ]),
+  h: enums(HASH_FUNCTION_NAMES),
   p: array(ProofObjectLayerStruct),
 })
 

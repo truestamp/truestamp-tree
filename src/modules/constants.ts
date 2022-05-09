@@ -11,3 +11,20 @@ export const LEAF_NODE_PREFIX: Uint8Array = new Uint8Array([0])
  * @ignore
  * */
 export const INNER_NODE_PREFIX: Uint8Array = new Uint8Array([1])
+
+/**
+ *  The names of the hash functions natively supported by the library.
+ * @ignore
+ * */
+export const HASH_FUNCTION_NAMES: string[] = [
+  'sha224',
+  'sha256',
+  'sha384',
+  'sha512',
+  'sha512_256',
+  'sha3_224',
+  'sha3_256',
+  'sha3_384',
+  'sha3_512',
+  'unknown',
+]
