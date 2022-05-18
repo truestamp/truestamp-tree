@@ -8,11 +8,11 @@
 // import { Tree, encodeHex, sha512_256 } from "../../lib/index.mjs"
 
 // Or, Load the module from deno.land/x/tree
-import { Tree, encodeHex, sha512_256 } from "https://deno.land/x/truestamp_tree@v0.1.3/mod.ts";
+import { Tree, encodeHex, sha512_256 } from "https://deno.land/x/truestamp_tree@v0.1.4/mod.ts";
 
 // Or, load latest ES Module from SkyPack. You should really use a pinned URL!
 // See : https://docs.skypack.dev/skypack-cdn/code/optimize-for-production
-// import { Tree, encodeHex, sha512_256 } from "https://cdn.skypack.dev/@truestamp/tree@0.1.3?dts";
+// import { Tree, encodeHex, sha512_256 } from "https://cdn.skypack.dev/@truestamp/tree@0.1.4?dts";
 
 const ARRAY_LENGTH = 1_000
 const rawData: number[] = Array.from(Array(ARRAY_LENGTH)).map(() => Math.floor(Math.random()))

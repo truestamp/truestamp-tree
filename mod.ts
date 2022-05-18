@@ -16,17 +16,6 @@ export type {
 } from './src/modules/types.ts'
 
 export {
-  ProofBinaryStruct,
-  ProofHexStruct,
-  ProofObjectLayerStruct,
-  ProofObjectStruct,
-  TreeDataStruct,
-  TreeHashFunctionNameStruct,
-  TreeOptionsStruct,
-  TreeTreeStruct,
-} from './src/modules/types.ts'
-
-export {
   concat,
   compare,
   encodeHex,
