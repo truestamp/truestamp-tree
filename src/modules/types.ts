@@ -18,7 +18,6 @@ import {
 } from 'superstruct'
 
 import isUint8Array from '@stdlib/assert/is-uint8array'
-import isFunction from '@stdlib/assert/is-function'
 
 import { HASH_FUNCTION_NAMES } from './constants'
 /**
@@ -66,7 +65,7 @@ const ProofBinary = define<Uint8Array>('ProofBinary', (value): boolean => {
 export const HashFunctionStruct = define<(input: Uint8Array) => Uint8Array>(
   'HashFunction',
   (value): boolean => {
-    if (isFunction(value)) {
+    if (typeof value === 'function' && value.length == 1) {
       const data = new Uint8Array([
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
       ])
