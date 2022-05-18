@@ -4,15 +4,23 @@
 //   npm run build (in the root of the repository)
 //   deno run examples/deno/index.ts
 
-// Load from local lib in development
+// OK : Load from local esbuild lib in development
 // import { Tree, encodeHex, sha512_256 } from "../../lib/index.mjs"
 
-// Or, Load the module from deno.land/x/tree
-import { Tree, encodeHex, sha512_256 } from "https://deno.land/x/truestamp_tree@v0.1.4/mod.ts";
-
-// Or, load latest ES Module from SkyPack. You should really use a pinned URL!
+// OK : load latest ES Module from SkyPack. You should really use a pinned URL!
 // See : https://docs.skypack.dev/skypack-cdn/code/optimize-for-production
+// See : https://docs.skypack.dev/skypack-cdn/api-reference/pinned-urls-optimized
 // import { Tree, encodeHex, sha512_256 } from "https://cdn.skypack.dev/@truestamp/tree@0.1.4?dts";
+
+// OK : load latest ES Module from esm.sh.
+// See : https://esm.sh/
+// See : https://esm.sh/@truestamp/tree
+import { Tree, encodeHex, sha512_256 } from "https://esm.sh/@truestamp/tree"
+
+// FIXME : DOES NOT WORK
+// GitHub webhook for updates disabled: https://github.com/truestamp/truestamp-tree/settings/hooks
+// Or, Load the module from deno.land/x/tree
+// import { Tree, encodeHex, sha512_256 } from "https://deno.land/x/truestamp_tree@v0.1.4/mod.ts";
 
 const ARRAY_LENGTH = 1_000
 const rawData: number[] = Array.from(Array(ARRAY_LENGTH)).map(() => Math.floor(Math.random()))
