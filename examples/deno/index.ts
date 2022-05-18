@@ -15,7 +15,7 @@
 // OK : load latest ES Module from esm.sh.
 // See : https://esm.sh/
 // See : https://esm.sh/@truestamp/tree
-import { Tree, encodeHex, sha512_256 } from "https://esm.sh/@truestamp/tree"
+import { Tree, encodeHex, sha512_256 } from "https://esm.sh/@truestamp/tree?target=deno"
 
 // FIXME : DOES NOT WORK
 // GitHub webhook for updates disabled: https://github.com/truestamp/truestamp-tree/settings/hooks
