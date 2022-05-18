@@ -23,7 +23,7 @@
   "overrides": [
     {
       "files": [
-        "test/**"
+        "tests/**"
       ],
       "plugins": [
         "jest"

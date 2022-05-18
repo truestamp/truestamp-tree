@@ -40,7 +40,6 @@ import {
 } from './utils'
 
 import { INNER_NODE_PREFIX, LEAF_NODE_PREFIX } from './constants'
-import { endianness } from 'os'
 
 /**
  * Decode a Hex proof to a Uint8Array.
@@ -234,6 +233,8 @@ export function resolveHashName(hashName: TreeHashFunctionName): {
     default:
       throw new Error(`unknown hash function name: ${hashName}`)
   }
+
+  assert(foundHashFunction, HashFunctionStruct)
 
   return {
     name: hashName,

@@ -1,12 +1,18 @@
-// Copyright © 2020-2022 Truestamp Inc. All rights reserved.
+// A simplistic Deno example of using the functions of the Tree client.
 
-// Usage: run this sample with:
+// Usage:
 //   npm run build (in the root of the repository)
-//   cd examples/typescript
-//   npm install
-//   npx ts-node index.ts
+//   deno run examples/deno/index.ts
 
-const { Tree, encodeHex, sha512_256 } = require('../../dist/index.cjs')
+// Load from local lib in development
+import { Tree, encodeHex, sha512_256 } from "../../lib/index.mjs"
+
+// Or, Load the module from deno.land/x/tree
+// import { Tree, encodeHex, sha512_256 } from "https://deno.land/x/tree@v1.1.1/mod.ts";
+
+// Or, load latest ES Module from SkyPack. You should really use a pinned URL!
+// See : https://docs.skypack.dev/skypack-cdn/code/optimize-for-production
+// import { Tree, encodeHex, sha512_256 } from "https://cdn.skypack.dev/@truestamp/tree@1.1.1?dts";
 
 const ARRAY_LENGTH = 1_000
 const rawData: number[] = Array.from(Array(ARRAY_LENGTH)).map(() => Math.floor(Math.random()))

@@ -1,4 +1,4 @@
-const { Tree } = require('../../dist/index.cjs')
+const { Tree } = require('../../lib/index.cjs')
 
 // A sample data array with 8 elements of 32 bytes each.
 // The data elements should be the same length as the output of the hash.

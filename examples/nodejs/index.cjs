@@ -23,7 +23,7 @@
 // Node.js native crypto library
 const crypto = require('crypto')
 
-const { Tree, encodeHex, sha256 } = require('../../dist/index.cjs')
+const { Tree, encodeHex, sha256 } = require('../../lib/index.cjs')
 
 // Custom hash function Example
 // It must take a single argument of type Uint8Array and
@@ -36,7 +36,7 @@ const { Tree, encodeHex, sha256 } = require('../../dist/index.cjs')
 // the hash of the data you want to store in the Tree instead of
 // randomBytes().
 console.time('data')
-const ARRAY_LENGTH = 1_000
+const ARRAY_LENGTH = 1_000_000
 console.log('ARRAY_LENGTH', ARRAY_LENGTH)
 const rawData = Array.from(Array(ARRAY_LENGTH)).map(() => crypto.randomBytes(10))
 const data = rawData.map((x) => { return sha256(x) })
