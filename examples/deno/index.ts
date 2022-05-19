@@ -5,7 +5,7 @@
 //   deno run examples/deno/index.ts
 
 // OK : Load from local esbuild lib in development
-// import { Tree, encodeHex, sha512_256 } from "../../lib/index.mjs"
+import { Tree, encodeHex, sha512_256 } from "../../lib/index.mjs"
 
 // OK : load latest ES Module from SkyPack. You should really use a pinned URL!
 // See : https://docs.skypack.dev/skypack-cdn/code/optimize-for-production
@@ -15,7 +15,7 @@
 // OK : load latest ES Module from esm.sh.
 // See : https://esm.sh/
 // See : https://esm.sh/@truestamp/tree
-import { Tree, encodeHex, sha512_256 } from "https://esm.sh/@truestamp/tree?target=deno"
+// import { Tree, encodeHex, sha512_256 } from "https://esm.sh/@truestamp/tree?target=deno"
 
 // FIXME : DOES NOT WORK
 // GitHub webhook for updates disabled: https://github.com/truestamp/truestamp-tree/settings/hooks
