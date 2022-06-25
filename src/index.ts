@@ -2,23 +2,16 @@
 
 export { Tree } from './modules/tree'
 
-export {
+export type {
+  MerkleRoot,
   ProofBinary,
-  ProofBinaryStruct,
   ProofHex,
-  ProofHexStruct,
   ProofObjectLayer,
-  ProofObjectLayerStruct,
   ProofObject,
-  ProofObjectStruct,
   TreeData,
-  TreeDataStruct,
   TreeHashFunctionName,
-  TreeHashFunctionNameStruct,
   TreeOptions,
-  TreeOptionsStruct,
   TreeTree,
-  TreeTreeStruct,
 } from './modules/types'
 
 export {

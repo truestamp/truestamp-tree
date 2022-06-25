@@ -1,10 +1,9 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
 import { Tree } from '../src/modules/tree'
-import { ProofHexStruct, ProofObject, ProofObjectStruct } from '../src/modules/types'
+import { ProofObject } from '../src/modules/types'
 import { encodeHex } from '../src/modules/utils'
 import { getRandomBytes, getRandomData } from './helpers'
-import { assert } from 'superstruct'
 
 describe('proofToHex and hexToProof roundtrip', () => {
   test('should encode/decode verifiable hex proofs', () => {
@@ -18,7 +17,6 @@ describe('proofToHex and hexToProof roundtrip', () => {
       expect(typeof hexProof).toEqual('string')
       expect(hexProof).toMatch(/^[0-9a-f]+$/)
       expect(Tree.verify(tree.root(), hexProof, data[i], 'sha256')).toBeTruthy()
-      expect(assert(hexProof, ProofHexStruct)).toBeUndefined()
     }
   })
 })
@@ -28,7 +26,7 @@ describe('proofToObject and objectToProof roundtrip', () => {
     const data = getRandomData(8, 32)
 
     const tree = new Tree(data, 'sha256')
-    const objProof = tree.proofObject(data[4])
+    const objProof: ProofObject = tree.proofObject(data[4])
 
     // manipulate the proof
     objProof.p[2] = [0, encodeHex(getRandomBytes(20))] // change the hash length
@@ -51,7 +49,6 @@ describe('proofToObject and objectToProof roundtrip', () => {
       const objProof: ProofObject = tree.proofObject(data[i])
       expect(typeof objProof).toEqual('object')
       expect(Tree.verify(tree.root(), objProof, data[i], 'sha256')).toBeTruthy()
-      expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     }
   })
 })

@@ -2,9 +2,8 @@
 
 import { Tree, treeDataHasExpectedLength } from '../src/modules/tree'
 import { getRandomBytes, getRandomData, sliceElement } from './helpers'
-import { ProofHexStruct, ProofObjectStruct } from '../src/modules/types'
+import { ProofHashTypeEnum } from '../src/modules/types'
 import { powerOfTwo } from '../src/modules/utils'
-import { assert } from 'superstruct'
 
 describe('Tree', () => {
   test('should be usable with default sha256 hash function', () => {
@@ -25,7 +24,7 @@ describe('Tree', () => {
     }
 
     expect(t).toThrow(Error)
-    expect(t).toThrow("Expected a nonempty array but received an empty one")
+    expect(t).toThrow("Array must contain at least 1 element")
   })
 
   test('should accept a data array with length 1', () => {
@@ -209,7 +208,6 @@ describe('Tree.proofHex', () => {
 
     const proof = tree.proofHex(data[1])
     expect(typeof proof).toBe('string')
-    expect(assert(proof, ProofHexStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], 'sha256'),
     ).toBeTruthy()
@@ -236,7 +234,6 @@ describe('Tree.proofObject', () => {
     const tree = new Tree(data)
     const proof = tree.proofObject(data[1])
     expect(typeof proof).toBe('object')
-    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], 'sha256'),
     ).toBeTruthy()
@@ -248,7 +245,6 @@ describe('Tree.proofObject', () => {
     const tree = new Tree(data)
 
     const proof = tree.proofObject(data[1])
-    expect(assert(proof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), proof, data[1], 'sha256'),
     ).toBeTruthy()
@@ -274,7 +270,7 @@ describe('Tree.verify', () => {
     }
 
     expect(t).toThrow(Error)
-    expect(t).toThrow('Expected a value of type `MerkleRoot`, but received: ``')
+    expect(t).toThrow('Merkle root must be a Uint8Array with length between 20 and 64 bytes')
   })
 
 
@@ -295,7 +291,7 @@ describe('Tree.verify', () => {
       }
 
       expect(t).toThrow(Error)
-      expect(t).toThrow('Expected a value of type `TreeHashFunctionName`, but received: `undefined`')
+      expect(t).toThrow('hashName is required if providing a binary encoded proof')
     })
 
     test('should not verify if any proof hashes are of the wrong length', () => {
@@ -348,7 +344,7 @@ describe('Tree.verify', () => {
       }
 
       expect(t).toThrow(Error)
-      expect(t).toThrow('Expected a value of type `TreeHashFunctionName`, but received: `undefined`')
+      expect(t).toThrow('hashName is required if providing a hex encoded proof')
     })
 
     test('should not verify if any proof hashes are of the wrong length', () => {
@@ -374,7 +370,6 @@ describe('Tree.verify', () => {
 
       const proofHex = tree.proofHex(data[1])
       expect(typeof proofHex).toBe('string')
-      expect(assert(proofHex, ProofHexStruct)).toBeUndefined()
       expect(
         Tree.verify(tree.root(), proofHex, data[1], 'sha256'),
       ).toBeTruthy()
@@ -385,7 +380,7 @@ describe('Tree.verify', () => {
   describe('Object proof', () => {
     test('verification should throw if unknown hashFunction is provided in object and undefined is provided as hashFunction arg', () => {
       const t = () => {
-        Tree.verify(new Uint8Array(getRandomBytes(32)), { v: 1, h: 'foo', p: [[0, 'deadbeefdeadbeefdeadbeefdeadbeef']] }, new Uint8Array([0]), undefined)
+        Tree.verify(new Uint8Array(getRandomBytes(32)), { v: 1, h: 'foo' as ProofHashTypeEnum, p: [[0, 'deadbeefdeadbeefdeadbeefdeadbeef']] }, new Uint8Array([0]), undefined)
       }
 
       expect(t).toThrow(Error)
@@ -416,7 +411,6 @@ describe('Tree.verify', () => {
     const tree = new Tree(data)
 
     const objProof = tree.proofObject(data[1])
-    expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), objProof, data[1], 'sha256'),
     ).toBeTruthy()
@@ -428,7 +422,6 @@ describe('Tree.verify', () => {
     const tree = new Tree(data, 'sha256')
 
     const objProof = tree.proofObject(data[1])
-    expect(assert(objProof, ProofObjectStruct)).toBeUndefined()
     expect(
       Tree.verify(tree.root(), objProof, data[1]),
     ).toBeTruthy()

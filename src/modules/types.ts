@@ -1,23 +1,6 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import {
-  array,
-  boolean,
-  define,
-  enums,
-  instance,
-  nonempty,
-  object,
-  optional,
-  pattern,
-  size,
-  string,
-  tuple,
-  number,
-  Infer,
-} from 'superstruct'
-
-import isUint8Array from '@stdlib/assert/is-uint8array'
+import { z } from 'zod'
 
 import { HASH_FUNCTION_NAMES } from './constants'
 /**
@@ -34,179 +17,126 @@ const REGEX_HASH_HEX_20_64 = /^(([a-f0-9]{2}){20,64})$/i
  * */
 const REGEX_HASH_HEX = /^(([a-f0-9]{2})+)$/i
 
-const MerkleRoot = define<Uint8Array>('MerkleRoot', (value): boolean => {
-  if (!isUint8Array(value)) {
-    return false
-  }
+/**
+ * Defines the shape of a Uint8Array Merkle root hash.
+ * */
+export const MerkleRoot = z
+  .instanceof(Uint8Array)
+  .refine(val => val.length >= 20 && val.length <= 64, {
+    message:
+      'Merkle root must be a Uint8Array with length between 20 and 64 bytes',
+  })
 
-  if ((value as Uint8Array).length < 20 || (value as Uint8Array).length > 64) {
-    return false
-  }
+export type MerkleRoot = z.infer<typeof MerkleRoot>
 
-  return true
-})
+/**
+ * Defines the shape of a Uint8Array inclusion proof.
+ * */
+export const ProofBinary = z
+  .instanceof(Uint8Array)
+  .refine(val => val.length <= 1024 * 1024, {
+    message:
+      'Binary inclusion proof must be a Uint8Array with length <= 1,048,576 bytes',
+  })
 
-const ProofBinary = define<Uint8Array>('ProofBinary', (value): boolean => {
-  if (!isUint8Array(value)) {
-    return false
-  }
-
-  // Too large
-  if ((value as Uint8Array).length > 1024 * 1024) {
-    return false
-  }
-
-  return true
-})
+export type ProofBinary = z.infer<typeof ProofBinary>
 
 /**
  * The type that defines the expected shape of user provided Tree hash function.
  * */
-export const HashFunctionStruct = define<(input: Uint8Array) => Uint8Array>(
-  'HashFunction',
-  (value): boolean => {
-    if (typeof value === 'function' && value.length == 1) {
-      const data = new Uint8Array([
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-      ])
+export const HashFunction = z
+  .function()
+  .args(z.instanceof(Uint8Array))
+  .returns(z.instanceof(Uint8Array))
 
-      try {
-        const func = value as (input: Uint8Array) => Uint8Array
-        const hash: unknown = func(data)
-
-        if (
-          isUint8Array(hash) &&
-          (hash as Uint8Array).length >= 20 &&
-          (hash as Uint8Array).length <= 64
-        ) {
-          return true
-        }
-
-        return false
-      } catch (error) {
-        return false
-      }
-    }
-
-    return false
-  },
-)
-
-/**
- * The inferred type that defines the shape of user provided hash function.
- * */
-export type HashFunction = Infer<typeof HashFunctionStruct>
+export type HashFunction = z.infer<typeof HashFunction>
 
 /**
  * The type that defines the expected shape of user provided hash function names.
  * */
-export const TreeHashFunctionNameStruct = define<string>(
-  'TreeHashFunctionName',
-  (value): boolean => {
-    if (typeof value !== 'string') {
-      return false
-    }
+export const TreeHashFunctionName = z
+  .string()
+  .refine(val => HASH_FUNCTION_NAMES.includes(val), {
+    message: `Tree hash function name must be one of the following: ${HASH_FUNCTION_NAMES.join(
+      ',',
+    )}`,
+  })
 
-    return HASH_FUNCTION_NAMES.includes(value)
-  },
-)
-
-/**
- * The inferred type that defines the shape of known hash function names.
- * */
-export type TreeHashFunctionName = Infer<typeof TreeHashFunctionNameStruct>
+export type TreeHashFunctionName = z.infer<typeof TreeHashFunctionName>
 
 /**
- * The struct that defines the shape of user provided tree data.
+ * Defines the shape of user provided tree data.
  * */
-export const TreeDataStruct = nonempty(array(instance(Uint8Array)))
+export const TreeData = z.array(z.instanceof(Uint8Array)).min(1)
+
+export type TreeData = z.infer<typeof TreeData>
 
 /**
- * The inferred type that defines the shape of user provided of tree data.
+ * Defines the shape of user provided tree configuration.
  * */
-export type TreeData = Infer<typeof TreeDataStruct>
-
-/**
- * The struct that defines the shape of user provided tree configuration.
- * */
-export const TreeOptionsStruct = object({
-  requireBalanced: optional(boolean()),
-  debug: optional(boolean()),
+export const TreeOptions = z.object({
+  requireBalanced: z.optional(z.boolean()),
+  debug: z.optional(z.boolean()),
 })
 
-/**
- * The inferred type that defines the shape of user provided tree configuration.
- * */
-export type TreeOptions = Infer<typeof TreeOptionsStruct>
+export type TreeOptions = z.infer<typeof TreeOptions>
 
 /**
- * The struct that defines the shape of a Uint8Array Merkle root hash.
+ * Defines the shape of a Hex encoded inclusion proof.
  * */
-export const MerkleRootStruct = MerkleRoot
+export const ProofHex = z.string().regex(REGEX_HASH_HEX)
+
+export type ProofHex = z.infer<typeof ProofHex>
 
 /**
- * The inferred type that defines the shape of a Uint8Array Merkle root hash.
+ * Defines the shape of one layer of an Object encoded inclusion proof.
  * */
-export type MerkleRoot = Infer<typeof MerkleRootStruct>
-
-/**
- * The struct that defines the shape of a Uint8Array inclusion proof.
- * */
-export const ProofBinaryStruct = ProofBinary
-
-/**
- * The inferred type that defines the shape of a Uint8Array inclusion proof.
- * */
-export type ProofBinary = Infer<typeof ProofBinaryStruct>
-
-/**
- * The struct that defines the shape of a Hex encoded inclusion proof.
- * */
-export const ProofHexStruct = pattern(string(), REGEX_HASH_HEX)
-
-/**
- * The inferred type that defines the shape of a Hex encoded inclusion proof.
- * */
-export type ProofHex = Infer<typeof ProofHexStruct>
-
-/**
- * The struct that defines the shape of one layer of an Object encoded inclusion proof.
- * */
-export const ProofObjectLayerStruct = tuple([
-  size(number(), 0, 1), // 0 : left, 1 : right
-  pattern(string(), REGEX_HASH_HEX_20_64),
+export const ProofObjectLayer = z.tuple([
+  z.number().int().min(0).max(1),
+  z.string().regex(REGEX_HASH_HEX_20_64),
 ])
 
-/**
- * The inferred type that defines the shape of one layer of an Object encoded inclusion proof.
- * */
-export type ProofObjectLayer = Infer<typeof ProofObjectLayerStruct>
+export type ProofObjectLayer = z.infer<typeof ProofObjectLayer>
+
+export const ProofHashTypeEnum = z.enum([
+  'sha224',
+  'sha256',
+  'sha384',
+  'sha512',
+  'sha512_256',
+  'sha3_224',
+  'sha3_256',
+  'sha3_384',
+  'sha3_512',
+])
+
+export type ProofHashTypeEnum = z.infer<typeof ProofHashTypeEnum>
 
 /**
- * The struct that defines the shape of an Object encoded inclusion proof.
+ * Defines the shape of an Object encoded inclusion proof.
  * v : version number
  * h : hash function
  * p : proof
  * */
-export const ProofObjectStruct = object({
-  v: enums([1]),
-  h: enums(HASH_FUNCTION_NAMES),
-  p: array(ProofObjectLayerStruct),
+export const ProofObject = z.object({
+  v: z.number().int().min(1).max(1),
+  h: ProofHashTypeEnum,
+  p: z.array(ProofObjectLayer),
 })
 
-/**
- * The inferred type that defines the shape of an Object encoded inclusion proof.
- * */
-export type ProofObject = Infer<typeof ProofObjectStruct>
+export type ProofObject = z.infer<typeof ProofObject>
 
 /**
- * The struct that defines the internal structure of a tree.
- * @ignore
+ * Defines the internal structure of a tree.
  * */
-export const TreeTreeStruct = array(array(instance(Uint8Array)))
+export const TreeTree = z.array(z.array(z.instanceof(Uint8Array)))
 
-/**
- * The inferred type that defines the internal structure of a tree.
- * @ignore
- * */
-export type TreeTree = Infer<typeof TreeTreeStruct>
+export type TreeTree = z.infer<typeof TreeTree>
+
+export const ResolvedHashName = z.object({
+  name: z.string(),
+  length: z.number().int().min(20).max(64),
+  fn: HashFunction,
+})
+
+export type ResolvedHashName = z.infer<typeof ResolvedHashName>

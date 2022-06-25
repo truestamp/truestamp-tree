@@ -1,25 +1,19 @@
 // Copyright © 2020-2022 Truestamp Inc. All rights reserved.
 
-import { assert, is } from 'superstruct'
+import { z } from 'zod'
 
 import {
   HashFunction,
-  HashFunctionStruct,
   TreeHashFunctionName,
-  TreeHashFunctionNameStruct,
   MerkleRoot,
-  MerkleRootStruct,
   ProofBinary,
-  ProofBinaryStruct,
   ProofHex,
-  ProofHexStruct,
   ProofObjectLayer,
   ProofObject,
-  ProofObjectStruct,
+  ResolvedHashName,
   TreeData,
-  TreeDataStruct,
-  TreeOptionsStruct,
   TreeTree,
+  TreeOptions,
 } from './types'
 
 import {
@@ -48,9 +42,9 @@ import { INNER_NODE_PREFIX, LEAF_NODE_PREFIX } from './constants'
  * @return The encoded proof value.
  */
 function hexToProof(proofHex: ProofHex): ProofBinary {
-  assert(proofHex, ProofHexStruct)
+  ProofHex.parse(proofHex)
   const proof = decodeHex(proofHex)
-  assert(proof, ProofBinaryStruct)
+  ProofBinary.parse(proof)
   return proof
 }
 
@@ -61,11 +55,11 @@ function hexToProof(proofHex: ProofHex): ProofBinary {
  * @return The encoded proof value.
  */
 function objectToProof(proofObj: ProofObject): ProofBinary {
-  assert(proofObj, ProofObjectStruct)
+  ProofObject.parse(proofObj)
 
   const firstProofLayerHashByteLen = proofObj.p[0][1].length / 2
 
-  // FIXME : can this check be done in superstruct which we assert above?
+  // FIXME : can this check be done in Zod?
   // Confirm that all proof layers have the same length hash
   for (const layer of proofObj.p) {
     if (layer[1].length / 2 !== firstProofLayerHashByteLen) {
@@ -86,7 +80,7 @@ function objectToProof(proofObj: ProofObject): ProofBinary {
     proof.set(decodeHex(hash), i * (1 + firstProofLayerHashByteLen) + 1)
   }
 
-  assert(proof, ProofBinaryStruct)
+  ProofBinary.parse(proof)
   return proof
 }
 
@@ -100,9 +94,9 @@ function verify(
   data: Uint8Array,
   hashFunction: HashFunction,
 ): boolean {
-  assert(root, MerkleRootStruct)
-  assert(proof, ProofBinaryStruct)
-  assert(hashFunction, HashFunctionStruct)
+  MerkleRoot.parse(root)
+  ProofBinary.parse(proof)
+  HashFunction.parse(hashFunction)
 
   // Do a test run of the hash function to determine its output length
   const hashFuncOutLen = hashFunction(new Uint8Array([0])).length
@@ -194,14 +188,18 @@ function debugLog(message: any, enabled: boolean): void {
   }
 }
 
-export function resolveHashName(hashName: TreeHashFunctionName): {
-  name: string
-  length: number
-  fn: HashFunction
-} {
-  assert(hashName, TreeHashFunctionNameStruct)
+export function resolveHashName(
+  hashName: TreeHashFunctionName,
+): ResolvedHashName {
+  try {
+    TreeHashFunctionName.parse(hashName)
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new Error(`invalid hash function name: '${hashName}'`)
+    }
+  }
 
-  let foundHashFunction
+  let foundHashFunction: HashFunction
   switch (hashName) {
     case 'sha224':
       foundHashFunction = sha224
@@ -231,16 +229,17 @@ export function resolveHashName(hashName: TreeHashFunctionName): {
       foundHashFunction = sha3_512
       break
     default:
+      // This should never happen, but if it does, we'll throw an error.
       throw new Error(`unknown hash function name: ${hashName}`)
   }
 
-  assert(foundHashFunction, HashFunctionStruct)
+  HashFunction.parse(foundHashFunction)
 
-  return {
+  return ResolvedHashName.parse({
     name: hashName,
     length: foundHashFunction(new Uint8Array([0])).length,
     fn: foundHashFunction,
-  }
+  })
 }
 
 /** Class representing a Merkle tree. */
@@ -323,21 +322,19 @@ export class Tree {
    * const verified = tree.verify(root, proof, data[0])
    * ```
    */
-  // FIXME : It should be possible to use TreeOptions type for options, but if we do that the tests get the type wrong??
   // eslint-disable-next-line prettier/prettier
   constructor (
     data: TreeData,
     hashName: TreeHashFunctionName = 'sha256',
-    options: { requireBalanced?: boolean; debug?: boolean } = {
+    options: TreeOptions = {
       requireBalanced: false,
       debug: false,
     },
   ) {
-    assert(data, TreeDataStruct)
-    assert(hashName, TreeHashFunctionNameStruct)
-    assert(options, TreeOptionsStruct)
+    TreeData.parse(data)
+    TreeOptions.parse(options)
 
-    const resolvedHash = resolveHashName(hashName)
+    const resolvedHash: ResolvedHashName = resolveHashName(hashName)
     this.hashName = resolvedHash.name
     this.hashLength = resolvedHash.length
     this.hashFunction = resolvedHash.fn
@@ -372,8 +369,7 @@ export class Tree {
     // which is the root of the tree.
     const root = this.tree[this.tree.length - 1][0]
 
-    assert(root, MerkleRootStruct)
-    return root
+    return MerkleRoot.parse(root)
   }
 
   /**
@@ -411,8 +407,7 @@ export class Tree {
   public proofHex(dataItem: Uint8Array): ProofHex {
     const proof: Uint8Array = this.proof(dataItem)
     const proofHex = encodeHex(proof)
-    assert(proofHex, ProofHexStruct)
-    return proofHex
+    return ProofHex.parse(proofHex)
   }
 
   /**
@@ -433,13 +428,11 @@ export class Tree {
       proofLayers.push([parseInt(encodeHex(order), 16), encodeHex(hash)])
     }
 
-    const proofObj: ProofObject = {
+    return ProofObject.parse({
       v: 1,
       h: this.hashName,
       p: proofLayers,
-    }
-    assert(proofObj, ProofObjectStruct)
-    return proofObj
+    })
   }
 
   /**
@@ -456,17 +449,40 @@ export class Tree {
     data: Uint8Array,
     hashName?: TreeHashFunctionName,
   ): boolean {
-    if (is(proof, ProofBinaryStruct)) {
-      assert(hashName, TreeHashFunctionNameStruct)
-      const resolvedHash = resolveHashName(hashName)
-      return verify(root, proof, data, resolvedHash.fn)
-    } else if (is(proof, ProofHexStruct)) {
-      assert(hashName, TreeHashFunctionNameStruct)
-      const resolvedHash = resolveHashName(hashName)
-      return verify(root, hexToProof(proof), data, resolvedHash.fn)
-    } else if (is(proof, ProofObjectStruct)) {
-      const resolvedHash = resolveHashName(proof.h)
-      return verify(root, objectToProof(proof), data, resolvedHash.fn)
+    const binaryProof = ProofBinary.safeParse(proof)
+    if (binaryProof.success) {
+      if (!hashName) {
+        throw new Error(
+          'hashName is required if providing a binary encoded proof which has no hash function name embedded',
+        )
+      }
+
+      const resolvedHash: ResolvedHashName = resolveHashName(hashName)
+      return verify(root, binaryProof.data, data, resolvedHash.fn)
+    }
+
+    const hexProof = ProofHex.safeParse(proof)
+    if (hexProof.success) {
+      if (!hashName) {
+        throw new Error(
+          'hashName is required if providing a hex encoded proof which has no hash function name embedded',
+        )
+      }
+
+      const resolvedHash: ResolvedHashName = resolveHashName(hashName)
+      return verify(root, hexToProof(hexProof.data), data, resolvedHash.fn)
+    }
+
+    const objectProof = ProofObject.safeParse(proof)
+    if (objectProof.success) {
+      const resolvedHash: ResolvedHashName = resolveHashName(objectProof.data.h)
+
+      return verify(
+        root,
+        objectToProof(objectProof.data),
+        data,
+        resolvedHash.fn,
+      )
     }
 
     throw new Error('invalid or corrupted proof provided')
@@ -568,7 +584,6 @@ export class Tree {
     debugLog(`proofForIndex proof data : ${JSON.stringify(proof)}`, this.debug)
 
     const proofUint8Array = new Uint8Array(proof)
-    assert(proofUint8Array, ProofBinaryStruct)
-    return proofUint8Array
+    return ProofBinary.parse(proofUint8Array)
   }
 }

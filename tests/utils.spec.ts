@@ -58,7 +58,7 @@ describe('compare', () => {
   });
 });
 
-describe('hash functions', () => {
+describe('resolveHashName', () => {
   test('defined hash function string names should function roundtrip', () => {
     const hashFunctionNames = [
       'sha224',
@@ -81,4 +81,25 @@ describe('hash functions', () => {
       expect(Tree.verify(tree.root(), tree.proofObject(data[0]), data[0])).toBeTruthy();
     }
   });
+
+  test('should throw if provided w/ undefined arg', () => {
+    const t = () => {
+      // @ts-ignore-next-line
+      resolveHashName(undefined)
+    }
+
+    expect(t).toThrow(Error)
+    expect(t).toThrow("invalid hash function name: 'undefined'")
+  })
+
+  test('should throw if provided w/ invalid arg', () => {
+    const t = () => {
+      // @ts-ignore-next-line
+      resolveHashName('foohash-256')
+    }
+
+    expect(t).toThrow(Error)
+    expect(t).toThrow("invalid hash function name: 'foohash-256'")
+  })
+
 });
