@@ -98,19 +98,19 @@ export const ProofObjectLayer = z.tuple([
 
 export type ProofObjectLayer = z.infer<typeof ProofObjectLayer>
 
-export const ProofHashTypeEnum = z.enum([
-  'sha224',
-  'sha256',
-  'sha384',
-  'sha512',
-  'sha512_256',
-  'sha3_224',
-  'sha3_256',
-  'sha3_384',
-  'sha3_512',
+export const UnionProofHashTypes = z.union([
+  z.literal('sha224'),
+  z.literal('sha256'),
+  z.literal('sha384'),
+  z.literal('sha512'),
+  z.literal('sha512_256'),
+  z.literal('sha3_224'),
+  z.literal('sha3_256'),
+  z.literal('sha3_384'),
+  z.literal('sha3_512'),
 ])
 
-export type ProofHashTypeEnum = z.infer<typeof ProofHashTypeEnum>
+export type UnionProofHashTypes = z.infer<typeof UnionProofHashTypes>
 
 /**
  * Defines the shape of an Object encoded inclusion proof.
@@ -120,7 +120,7 @@ export type ProofHashTypeEnum = z.infer<typeof ProofHashTypeEnum>
  * */
 export const ProofObject = z.object({
   v: z.number().int().min(1).max(1),
-  h: ProofHashTypeEnum,
+  h: UnionProofHashTypes,
   p: z.array(ProofObjectLayer),
 })
 

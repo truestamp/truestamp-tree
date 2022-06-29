@@ -2,7 +2,7 @@
 
 import { Tree, treeDataHasExpectedLength } from '../src/modules/tree'
 import { getRandomBytes, getRandomData, sliceElement } from './helpers'
-import { ProofHashTypeEnum } from '../src/modules/types'
+import { UnionProofHashTypes } from '../src/modules/types'
 import { powerOfTwo } from '../src/modules/utils'
 
 describe('Tree', () => {
@@ -380,7 +380,7 @@ describe('Tree.verify', () => {
   describe('Object proof', () => {
     test('verification should throw if unknown hashFunction is provided in object and undefined is provided as hashFunction arg', () => {
       const t = () => {
-        Tree.verify(new Uint8Array(getRandomBytes(32)), { v: 1, h: 'foo' as ProofHashTypeEnum, p: [[0, 'deadbeefdeadbeefdeadbeefdeadbeef']] }, new Uint8Array([0]), undefined)
+        Tree.verify(new Uint8Array(getRandomBytes(32)), { v: 1, h: <UnionProofHashTypes>'foo', p: [[0, 'deadbeefdeadbeefdeadbeefdeadbeef']] }, new Uint8Array([0]), undefined)
       }
 
       expect(t).toThrow(Error)

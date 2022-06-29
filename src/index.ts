@@ -12,17 +12,18 @@ export type {
   TreeHashFunctionName,
   TreeOptions,
   TreeTree,
+  UnionProofHashTypes,
 } from './modules/types'
 
 export {
-  concat,
   compare,
-  encodeHex,
+  concat,
   decodeHex,
+  encodeHex,
   powerOfTwo,
   sha224,
-  sha384,
   sha256,
+  sha384,
   sha512,
   sha512_256,
   sha3_224,
